@@ -17,7 +17,7 @@ export const ICONS = {
   VISIBILITY_OFF: 'visibility_off',
   EDIT: 'edit',
   REMOVE: 'delete',
-  
+  MANAGEMENT: 'splitscreen_landscape',
   ///CAR
   CAR_VIN: 'directions_car',
   CAR_STATUS: 'signal_wifi_statusbar_null',
