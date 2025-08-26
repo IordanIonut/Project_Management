@@ -70,6 +70,7 @@ export class CreateComponent {
 
   keys!: GenerateTableKeys[];
   isHiddenInformation: boolean = false;
+  isBackHidden: boolean = false;
   typeMode!: 'edit' | 'add' | 'delete';
 
   constructor(
@@ -111,114 +112,57 @@ export class CreateComponent {
       content: [],
     };
     this.typeMode = 'add';
-    this.setFormDefaults();
+    this.onCardClick(this.cards[0]);
+  }
+
+  onBack() {
+    this.isBackHidden = !this.isBackHidden;
+    this.onCardClick(this.cardSelected);
   }
 
   onCardClick(card: Card) {
     this.cardSelected = card;
     this.page.content = [card.name];
     if (this.typeMode === 'add' || this.typeMode === 'edit') {
+      this.isBackHidden = false;
       this.keys = [GenerateTableKeys.USER_ALL, GenerateTableKeys.MACHINE_ALL];
+    } else {
+      this.isBackHidden = true;
+      this.keys = [];
     }
 
-    if (this.typeMode === 'add') {
-      this.setFormDefaults();
-      switch (card.name) {
-        case TYPES.User: {
-          this.configs = [
-            {
-              label: 'Username',
-              icon: ICONS.EMPLOYEE,
-              formControlName: 'username',
-              type: 'text',
-              placeholder: 'Enter username',
-            },
-            {
-              label: 'Password',
-              icon: ICONS.PASSWORD,
-              formControlName: 'password',
-              type: 'password',
-              placeholder: 'Enter password',
-            },
-            {
-              label: 'Email',
-              icon: ICONS.EMAIL,
-              formControlName: 'email',
-              type: 'email',
-              placeholder: 'Enter email',
-            },
-            {
-              label: 'Role',
-              icon: ICONS.ROLE,
-              formControlName: 'role',
-              type: 'select',
-              options: ['NONE', ...Object.keys(UserRole)],
-              placeholder: 'Enter role',
-            },
-            {
-              label: 'Employee Name',
-              icon: ICONS.EMPLOYEE,
-              formControlName: 'employee_name',
-              type: 'text',
-              placeholder: 'Enter employee name',
-            },
-            {
-              label: 'Department',
-              icon: ICONS.DEPARTMENT,
-              formControlName: 'department',
-              type: 'text',
-              placeholder: 'Enter department',
-            },
-            {
-              label: 'Employee Role',
-              icon: ICONS.ROLE,
-              formControlName: 'employee_role',
-              type: 'select',
-              options: ['NONE', ...Object.keys(EmployeeRole)],
-              placeholder: 'Enter employee role',
-            },
-          ];
-          break;
-        }
-        case TYPES.Machine: {
-          this.configs = [
-            {
-              label: 'Name',
-              icon: ICONS.ROLE,
-              formControlName: 'name',
-              type: 'text',
-              placeholder: 'Enter name',
-            },
-            {
-              label: 'Type',
-              icon: ICONS.ROLE,
-              formControlName: 'type',
-              type: 'text',
-              placeholder: 'Enter type',
-            },
-            {
-              label: 'Status',
-              icon: ICONS.ROLE,
-              formControlName: 'status',
-              type: 'select',
-              options: ['NONE', ...Object.keys(MachineStatus)],
-              placeholder: 'Enter status',
-            },
-          ];
-          break;
-        }
-        default: {
-          console.error('Unknown card type');
-        }
+    switch (this.typeMode) {
+      case 'add': {
+        this.addEvent(card);
+        break;
+      }
+      default: {
+        console.error('not find onCardClick(): ' + this.typeMode);
       }
     }
+  }
+
+  onEventRowSelected(event: any) {
+    console.log(event);
+    this.isBackHidden = true;
+  }
+
+  setHiddenTable() {
+    this.isBackHidden = !this.isBackHidden;
+  }
+
+  get shouldHideTable(): boolean {
+    return (
+      (this.typeMode !== 'edit' && this.typeMode !== 'delete') ||
+      this.isBackHidden
+    );
   }
 
   async onSaveNewInstance() {
     this.form.markAllAsTouched();
 
     switch (this.cardSelected.name) {
-      case TYPES.User: {
+      case ENUM.User: {
         try {
           const machines = await firstValueFrom(
             this._userService.findByEmail(this.form.get('email')?.value)
@@ -346,7 +290,7 @@ export class CreateComponent {
         }
         break;
       }
-      case TYPES.Machine: {
+      case ENUM.Machine: {
         try {
           const machines = await firstValueFrom(
             this._machineService.findMachinesByNameOrId(
@@ -418,9 +362,101 @@ export class CreateComponent {
     }
   }
 
+  private addEvent(card: Card) {
+    this.setFormDefaults();
+    switch (card.name) {
+      case ENUM.User: {
+        this.configs = [
+          {
+            label: 'Username',
+            icon: ICONS.EMPLOYEE,
+            formControlName: 'username',
+            type: 'text',
+            placeholder: 'Enter username',
+          },
+          {
+            label: 'Password',
+            icon: ICONS.PASSWORD,
+            formControlName: 'password',
+            type: 'password',
+            placeholder: 'Enter password',
+          },
+          {
+            label: 'Email',
+            icon: ICONS.EMAIL,
+            formControlName: 'email',
+            type: 'email',
+            placeholder: 'Enter email',
+          },
+          {
+            label: 'Role',
+            icon: ICONS.ROLE,
+            formControlName: 'role',
+            type: 'select',
+            options: ['NONE', ...Object.keys(UserRole)],
+            placeholder: 'Enter role',
+          },
+          {
+            label: 'Employee Name',
+            icon: ICONS.EMPLOYEE,
+            formControlName: 'employee_name',
+            type: 'text',
+            placeholder: 'Enter employee name',
+          },
+          {
+            label: 'Department',
+            icon: ICONS.DEPARTMENT,
+            formControlName: 'department',
+            type: 'text',
+            placeholder: 'Enter department',
+          },
+          {
+            label: 'Employee Role',
+            icon: ICONS.ROLE,
+            formControlName: 'employee_role',
+            type: 'select',
+            options: ['NONE', ...Object.keys(EmployeeRole)],
+            placeholder: 'Enter employee role',
+          },
+        ];
+        break;
+      }
+      case ENUM.Machine: {
+        this.configs = [
+          {
+            label: 'Name',
+            icon: ICONS.ROLE,
+            formControlName: 'name',
+            type: 'text',
+            placeholder: 'Enter name',
+          },
+          {
+            label: 'Type',
+            icon: ICONS.ROLE,
+            formControlName: 'type',
+            type: 'text',
+            placeholder: 'Enter type',
+          },
+          {
+            label: 'Status',
+            icon: ICONS.ROLE,
+            formControlName: 'status',
+            type: 'select',
+            options: ['NONE', ...Object.keys(MachineStatus)],
+            placeholder: 'Enter status',
+          },
+        ];
+        break;
+      }
+      default: {
+        console.error('Unknown card type');
+      }
+    }
+  }
+
   private setFormDefaults() {
     switch (this.cardSelected.name) {
-      case TYPES.User: {
+      case ENUM.User: {
         this.form = this._fb.group({
           username: ['', Validators.required],
           password: [
@@ -439,7 +475,7 @@ export class CreateComponent {
         });
         break;
       }
-      case TYPES.Machine: {
+      case ENUM.Machine: {
         this.form = this._fb.group({
           name: ['', Validators.required],
           type: ['', Validators.required],
@@ -450,7 +486,8 @@ export class CreateComponent {
     }
   }
 }
-enum TYPES {
+type TYPES = User | Machines;
+enum ENUM {
   User = 'User',
   Machine = 'Machine',
 }

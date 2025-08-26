@@ -1,5 +1,11 @@
 import { HttpClientModule } from '@angular/common/http';
-import { Component, Input, ViewChild } from '@angular/core';
+import {
+  Component,
+  EventEmitter,
+  Input,
+  Output,
+  ViewChild,
+} from '@angular/core';
 import { CardComponent } from '../card/card.component';
 import { CommonModule } from '@angular/common';
 import { NamePageComponent } from '../name-page/name-page.component';
@@ -57,6 +63,7 @@ import { UserRole } from '../../_model/_enum/user-role';
 import { isMachine, Machines } from '../../_model/_interface/machine';
 import { User } from '../../_model/_interface/user';
 import { UserAllFiltersDTO } from '../../_model/_dto/user-all-filters-dto';
+import { MachineAllFiltersDTO } from '../../_model/_dto/machine-all-filter.dto';
 
 @Component({
   selector: 'app-generate-table',
@@ -85,6 +92,10 @@ import { UserAllFiltersDTO } from '../../_model/_dto/user-all-filters-dto';
 export class GenerateTableComponent {
   @Input() keys!: GenerateTableKeys[];
   @Input() type: boolean = true;
+  @Input() isHidden: boolean = false;
+
+  @Output() eventRow: EventEmitter<TYPES> = new EventEmitter<TYPES>();
+  @Output() hidden: EventEmitter<void> = new EventEmitter<void>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
@@ -803,9 +814,51 @@ export class GenerateTableComponent {
     ],
     [GenerateTableKeys.MACHINE_ALL]: [
       {
-        key: 'username',
-        code: 'p.employee_id.user_id.username',
-        label: 'Username',
+        key: 'name',
+        code: 'm.name',
+        label: 'Name',
+        type: 'link',
+        link: Urls.MACHINE_DISPLAY_NAME,
+        config: {
+          type: 'text',
+          placeholder: 'Name',
+          formControlName: 'name',
+        },
+      },
+      {
+        key: 'type',
+        code: 'm.type',
+        label: 'Type',
+        type: 'text',
+        config: {
+          type: 'text',
+          placeholder: 'Type',
+          formControlName: 'type',
+        },
+      },
+      {
+        key: 'status',
+        code: 'm.status',
+        type: 'text',
+        label: 'Status',
+        config: {
+          type: 'select',
+          placeholder: 'Status',
+          formControlName: 'status',
+          options: ['NONE', ...Object.keys(MachineStatus)],
+        },
+      },
+      {
+        key: 'last_maintenance',
+        code: 'm.last_maintenance',
+        isActive: true,
+        pipe: 'date',
+        label: 'Last Maintenance',
+        config: {
+          type: 'date',
+          placeholder: 'Last Maintenance',
+          formControlName: 'last_maintenance',
+        },
       },
     ],
   };
@@ -1100,7 +1153,6 @@ export class GenerateTableComponent {
         this._userService
           .excelAllByUserAllFilters(
             columns.join(', '),
-            
             this.onGiveFilters()! as UserAllFiltersDTO
           )
           .subscribe({
@@ -1109,6 +1161,26 @@ export class GenerateTableComponent {
                 tables,
                 response,
                 'Users_' + new Date().toLocaleDateString()
+              );
+            },
+            error: (error) => {
+              console.error(error);
+            },
+          });
+        break;
+      }
+      case GenerateTableKeys.MACHINE_ALL: {
+        this._machineService
+          .excelAllByMachineAllFilters(
+            columns.join(', '),
+            this.onGiveFilters()! as MachineAllFiltersDTO
+          )
+          .subscribe({
+            next: (response) => {
+              this._excelService.exportToExcel(
+                tables,
+                response,
+                'Machine_' + new Date().toLocaleDateString()
               );
             },
             error: (error) => {
@@ -1132,6 +1204,10 @@ export class GenerateTableComponent {
     }
     this.card = card;
     this.onColumns();
+
+    if (this.isHidden === true) {
+      this.hidden.emit();
+    }
 
     switch (card.name) {
       case GenerateTableKeys.PROCESS_LOG: {
@@ -1287,7 +1363,11 @@ export class GenerateTableComponent {
       }
       case GenerateTableKeys.MACHINE_ALL: {
         this._machineService
-          .findAllMachine(settings.changePage, settings.sortPage)
+          .findByMachineAllFilters(
+            settings.changePage,
+            settings.sortPage,
+            this.onGiveFilters() as MachineAllFiltersDTO
+          )
           .subscribe({
             next: (response) => {
               this.data = [...response.items];
@@ -1383,10 +1463,8 @@ export class GenerateTableComponent {
         }
         break;
       }
-      case GenerateTableKeys.USER_ALL: {
-        break;
-      }
-      case GenerateTableKeys.MACHINE_ALL: {
+      case GenerateTableKeys.USER_ALL || GenerateTableKeys.MACHINE_ALL: {
+        this.eventRow.emit(event);
         break;
       }
       default: {
@@ -1404,6 +1482,7 @@ export class GenerateTableComponent {
     | PartProductionFiltersDTO
     | MachineFiltersDTO
     | UserAllFiltersDTO
+    | MachineAllFiltersDTO
     | null {
     switch (this.card.name) {
       case GenerateTableKeys.PROCESS_LOG: {
@@ -1680,6 +1759,26 @@ export class GenerateTableComponent {
         };
       }
       case GenerateTableKeys.MACHINE_ALL: {
+        return {
+          last_maintenance:
+            this.form[GenerateTableKeys.MACHINE_ALL].value.last_maintenance ===
+            ''
+              ? null
+              : this.form[GenerateTableKeys.MACHINE_ALL].value.last_maintenance,
+          status:
+            this.form[GenerateTableKeys.MACHINE_ALL].value.status === '' ||
+            this.form[GenerateTableKeys.MACHINE_ALL].value.status === 'NONE'
+              ? null
+              : this.form[GenerateTableKeys.MACHINE_ALL].value.status,
+          type:
+            this.form[GenerateTableKeys.MACHINE_ALL].value.type === ''
+              ? null
+              : this.form[GenerateTableKeys.MACHINE_ALL].value.type,
+          name:
+            this.form[GenerateTableKeys.MACHINE_ALL].value.name === ''
+              ? null
+              : this.form[GenerateTableKeys.MACHINE_ALL].value.name,
+        };
       }
     }
     return null;
@@ -1747,6 +1846,12 @@ export class GenerateTableComponent {
         email: [null],
         role: ['NONE'],
         employees_id_name: [null],
+      }),
+      [GenerateTableKeys.MACHINE_ALL]: this._fb.group({
+        last_maintenance: [null],
+        status: ['NONE'],
+        type: [null],
+        name: [null],
       }),
     };
   }

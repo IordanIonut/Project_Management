@@ -6,10 +6,12 @@
     [isAddHidden]="true"
     [isEditHidden]="true"
     [isDeleteHidden]="true"
+    [isBackHidden]="isBackHidden"
     (onType)="onType($event)"
     (onEdit)="onEdit()"
     (onDelete)="onDelete()"
     (onAdd)="onAdd()"
+    (onBack)="onBack()"
   ></app-name-page>
   <div
     *ngIf="typeMode === 'add'"
@@ -47,5 +49,8 @@
     *ngIf="typeMode === 'edit' || typeMode === 'delete'"
     [keys]="keys"
     [type]="type"
+    [isHidden]="shouldHideTable"
+    (eventRow)="onEventRowSelected($event)"
+    (hidden)="setHiddenTable()"
   ></app-generate-table>
 </mat-card>

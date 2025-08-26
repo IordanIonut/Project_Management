@@ -8,7 +8,7 @@ import { SpinnerComponent } from './_service/_spinner/spinner/spinner.component'
 import { SpinnerService } from './_service/_spinner/spinner.service';
 import { RolesLogicallyService } from './_shared/roles-logically.service';
 import { HttpClientModule } from '@angular/common/http';
-
+import { Title } from '@angular/platform-browser';
 @Component({
   selector: 'app-root',
   standalone: true,
@@ -34,6 +34,7 @@ export class AppComponent {
     private _spinnerService: SpinnerService,
     private router: Router,
     private _rolesLogically: RolesLogicallyService,
+    private titleService: Title,
     @Inject(PLATFORM_ID) private platformId: Object
   ) {
     this.router.events
@@ -45,6 +46,7 @@ export class AppComponent {
       .subscribe((event) => {
         this.showNavbar = !event.urlAfterRedirects.includes('authentication');
         this.isAppReady = true;
+        this.titleService.setTitle('CarFactory');
       });
 
     this.loading$ = this._spinnerService.loading$;

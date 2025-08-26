@@ -7,17 +7,19 @@
   ></app-card>
 </div>
 <div class="divide"></div>
-<app-table
-  [data]="data"
-  [count]="count"
-  [pageIndex]="onGetPageIndex()"
-  [columns]="onColumns()"
-  [isTable]="true"
-  [form]="onForms()"
-  (pageChanged)="onPageChanged($event)"
-  (sortChanged)="onSortChanged($event)"
-  [enableDblClickForRow]="true"
-  (onExport)="onExport()"
-  (onActivateFilters)="onActivateFilters()"
-  (onDblClickRow)="onDblClickRow($event)"
-></app-table>
+<div *ngIf="!isHidden">
+  <app-table
+    [data]="data"
+    [count]="count"
+    [pageIndex]="onGetPageIndex()"
+    [columns]="onColumns()"
+    [isTable]="true"
+    [form]="onForms()"
+    (pageChanged)="onPageChanged($event)"
+    (sortChanged)="onSortChanged($event)"
+    [enableDblClickForRow]="true"
+    (onExport)="onExport()"
+    (onActivateFilters)="onActivateFilters()"
+    (onDblClickRow)="onDblClickRow($event)"
+  ></app-table>
+</div>

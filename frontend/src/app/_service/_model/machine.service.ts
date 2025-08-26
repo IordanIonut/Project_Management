@@ -12,6 +12,7 @@ import {
   FindByRequestDTO,
   TableRequest,
 } from '../../_model/_dto/find-by-request-dto';
+import { MachineAllFiltersDTO } from '../../_model/_dto/machine-all-filter.dto';
 
 @Injectable({
   providedIn: 'root',
@@ -63,15 +64,29 @@ export class MachineService {
     return this._http.post<Machines>(`${this.authUrl}/save`, machine);
   }
 
-  findAllMachine(
+  findByMachineAllFilters(
     changePage: ChangePage,
-    sortPage: SortPage
+    sortPage: SortPage,
+    machineAllFiltersDTO: MachineAllFiltersDTO
   ): Observable<GroupResult<Machines>> {
     const tableRequest: TableRequest = { changePage, sortPage };
 
     return this._http.post<GroupResult<Machines>>(
       `${this.authUrl}/find-all/by`,
-      { tableRequest: tableRequest } as FindByRequestDTO
+      {
+        tableRequest: tableRequest,
+        machineAllFiltersDTO: machineAllFiltersDTO,
+      } as FindByRequestDTO
+    );
+  }
+
+  excelAllByMachineAllFilters(
+    columns: string,
+    machineAllFiltersDTO: MachineAllFiltersDTO
+  ): Observable<any[]> {
+    return this._http.post<any[]>(
+      `${this.authUrl}/excel-all/by?columns=${columns}`,
+      { machineAllFiltersDTO: machineAllFiltersDTO } as FindByRequestDTO
     );
   }
 }

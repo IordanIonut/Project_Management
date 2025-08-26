@@ -25,7 +25,6 @@ import { ViewData } from '../../_dialog/view-data';
   imports: [
     MatCardModule,
     MatIconModule,
-    NgClass,
     CommonModule,
     MatProgressSpinnerModule,
     MatButtonToggleModule,

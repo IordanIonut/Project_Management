@@ -20,11 +20,13 @@ export class NamePageComponent {
   @Input() isAddHidden: boolean = false;
   @Input() isEditHidden: boolean = false;
   @Input() isDeleteHidden: boolean = false;
+  @Input() isBackHidden: boolean = false;
 
   @Output() onType: EventEmitter<boolean> = new EventEmitter<boolean>();
   @Output() onEdit: EventEmitter<void> = new EventEmitter<void>();
   @Output() onDelete: EventEmitter<void> = new EventEmitter<void>();
   @Output() onAdd: EventEmitter<void> = new EventEmitter<void>();
+  @Output() onBack: EventEmitter<void> = new EventEmitter<void>();
 
   ICONS = ICONS;
   constructor() {}
@@ -44,5 +46,9 @@ export class NamePageComponent {
 
   onAddEvent() {
     this.onAdd.emit();
+  }
+
+  onBackEvent() {
+    this.onBack.emit();
   }
 }

@@ -4,6 +4,7 @@ export const Urls = {
   ///MACHINE
   MACHINE_NAME: { url: 'dashboard/machine', code: 'machine_id.name' },
   MACHINE_ID: { url: 'dashboard/machine', code: 'machine_id.id' },
+  MACHINE_DISPLAY_NAME: { url: 'dashboard/machine', code: 'name' },
 
   ///PROCESS
   PROCESS_ID: { url: 'dashboard/process', code: 'id' },

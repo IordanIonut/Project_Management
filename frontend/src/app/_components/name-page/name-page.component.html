@@ -36,5 +36,12 @@
         <span>Create</span>
       </button>
     </div>
+
+    <div *ngIf="isBackHidden">
+      <button id="back" class="button-page" (click)="onBackEvent()">
+        <mat-icon class="text-lg">{{ ICONS.BACK }}</mat-icon>
+        <span>Back</span>
+      </button>
+    </div>
   </div>
 </div>

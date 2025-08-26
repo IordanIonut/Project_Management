@@ -18,6 +18,7 @@ export const ICONS = {
   EDIT: 'edit',
   REMOVE: 'delete',
   MANAGEMENT: 'splitscreen_landscape',
+  BACK: 'arrow_back',
   ///CAR
   CAR_VIN: 'directions_car',
   CAR_STATUS: 'signal_wifi_statusbar_null',
