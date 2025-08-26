@@ -1,6 +1,7 @@
 package com.example.backend.Repository;
 
 import com.example.backend.Model.Class.Machines;
+import com.example.backend.Model.Dto.MachineAllFiltersDTO;
 import com.example.backend.Model.Enum.MachineStatus;
 import com.example.backend.Model.View.CountView;
 import org.springframework.data.domain.Pageable;
@@ -10,6 +11,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDate;
 import java.util.List;
 
 @Repository
@@ -40,9 +42,9 @@ public interface MachinesRepository extends JpaRepository<Machines, String> {
     @Query("SELECT m FROM Machines m WHERE LOWER(m.name) LIKE LOWER(CONCAT('%',:machine_name,'%'))")
     List<Machines> findMachinesByName(@Param("machine_name") final String machine_name, Pageable pageable);
 
-    @Query("SELECT m FROM Machines m WHERE 1 = 1")
-    List<Machines> findAllBy(Pageable pageable);
+    @Query("SELECT m FROM Machines m WHERE 1 = 1 " + MachineAllFiltersDTO.QUERY)
+    List<Machines> findAllByMachineAllFilters(Pageable pageable, @Param("type") final String type, @Param("name") final String name, @Param("status") final String status, @Param("last_maintenance") final LocalDate last_maintenance);
 
-    @Query("SELECT COUNT(m.id) FROM Machines m WHERE 1 = 1")
-    Long countAllBy();
+    @Query("SELECT COUNT(m.id) FROM Machines m WHERE 1 = 1" + MachineAllFiltersDTO.QUERY)
+    Long countAllByMachineAllFilters(@Param("type") final String type, @Param("name") final String name, @Param("status") final String status, @Param("last_maintenance") final LocalDate last_maintenance);
 }

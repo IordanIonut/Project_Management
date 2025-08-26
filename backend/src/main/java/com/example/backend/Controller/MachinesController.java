@@ -92,12 +92,23 @@ public class MachinesController {
     }
 
     @PostMapping("/find-all/by")
-    public ResponseEntity<GroupedResult> findAllBy(@RequestBody FindByRequestDTO requestDTO){
+    public ResponseEntity<GroupedResult> findAllByMachineAllFilters(@RequestBody FindByRequestDTO requestDTO){
         try {
-            log.info("findAllBy() - Successful.....");
-            return ResponseEntity.ok(new GroupedResult(this.machinesService.findAllBy(requestDTO.getTableRequest()),this.machinesService.countAllBy() ));
+            log.info("findAllByMachineAllFilters() - Successful.....");
+            return ResponseEntity.ok(new GroupedResult(this.machinesService.findAllByMachineAllFilters(requestDTO.getTableRequest(), requestDTO.getMachineAllFiltersDTO()),this.machinesService.countAllBy(requestDTO.getMachineAllFiltersDTO()) ));
         } catch (Exception e) {
-            log.error("Error in findAllBy: {}", e.getMessage(), e);
+            log.error("Error in findAllByMachineAllFilters: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/excel-all/by")
+    public ResponseEntity<List<Object[]>> excelAllByMachineAllFilters(@RequestParam("columns") final String columns, @RequestBody FindByRequestDTO requestDTO) {
+        try {
+            log.info("excelAllByMachineAllFilters() - Successful.....");
+            return ResponseEntity.ok(this.machinesService.excelAllByMachineAllFilters(columns,requestDTO.getMachineAllFiltersDTO()));
+        } catch (Exception e) {
+            log.error("Error in excelAllByMachineAllFilters: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
