@@ -23,6 +23,7 @@ public class EmployeesService {
     public void save(Employees employee) {
         this.employeesRepository.save(employee);
     }
+
     public List<Employees> findAll(){
         return this.employeesRepository.findAll();
     }
@@ -31,5 +32,9 @@ public class EmployeesService {
         return employeesRepository.findAll().stream()
                 .map(Employees::getName)
                 .collect(Collectors.toSet());
+    }
+
+    public Optional<Employees> findById(String id){
+        return this.employeesRepository.findById(id);
     }
 }

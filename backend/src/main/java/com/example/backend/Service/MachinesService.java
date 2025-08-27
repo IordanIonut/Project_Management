@@ -10,11 +10,13 @@ import com.example.backend.Model.Enum.ProcessLogStatus;
 import com.example.backend.Repository.MachinesRepository;
 import com.example.backend.Utility.TableRequest;
 import jakarta.persistence.EntityManager;
+import jakarta.persistence.Transient;
 import jakarta.persistence.TypedQuery;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
@@ -75,22 +77,24 @@ public class MachinesService {
         return this.machinesRepository.findMachinesByName(machine_name, BackendApplication.generatePaginateOfSearch());
     }
 
+    @Transient
+    @CacheEvict(cacheNames = CACHEABLE + "findAllByMachineAllFilters", allEntries = true)
     public void save(Machines machine) {
-        machine.setId(BackendApplication.generateId());
+        if (machine.getId() == null) {
+            machine.setId(BackendApplication.generateId());
+        }
         this.machinesRepository.save(machine);
     }
 
     @Cacheable(cacheNames = CACHEABLE + "findAllByMachineAllFilters", key = "@tableRequestCacheKeyHelper.buildProcessLogKey(#tableRequest) + @machineAllCacheKeyHelper.buildMachineAllKey(#machineAllFiltersDTO)")
     public List<Machines> findAllByMachineAllFilters(TableRequest tableRequest, MachineAllFiltersDTO machineAllFiltersDTO) {
         PageRequest pageRequest = BackendApplication.generateTablePage(tableRequest);
-        return this.machinesRepository.findAllByMachineAllFilters(pageRequest, machineAllFiltersDTO.getType(), machineAllFiltersDTO.getName(),
-                machineAllFiltersDTO.getStatus(), machineAllFiltersDTO.getLast_maintenance());
+        return this.machinesRepository.findAllByMachineAllFilters(pageRequest, machineAllFiltersDTO.getType(), machineAllFiltersDTO.getName(), machineAllFiltersDTO.getStatus(), machineAllFiltersDTO.getLast_maintenance());
     }
 
     @Cacheable(cacheNames = CACHEABLE + "countAllByMachineAllFilters", key = "@machineAllCacheKeyHelper.buildMachineAllKey(#machineAllFiltersDTO)")
     public Long countAllBy(MachineAllFiltersDTO machineAllFiltersDTO) {
-        return this.machinesRepository.countAllByMachineAllFilters(machineAllFiltersDTO.getType(), machineAllFiltersDTO.getName(),
-                machineAllFiltersDTO.getStatus(), machineAllFiltersDTO.getLast_maintenance());
+        return this.machinesRepository.countAllByMachineAllFilters(machineAllFiltersDTO.getType(), machineAllFiltersDTO.getName(), machineAllFiltersDTO.getStatus(), machineAllFiltersDTO.getLast_maintenance());
     }
 
     @Cacheable(cacheNames = CACHEABLE + "excelAllByMachineAllFilters", key = "@machineAllCacheKeyHelper.buildMachineAllKey(#machineAllFiltersDTO)")
@@ -101,5 +105,17 @@ public class MachinesService {
         query.setParameter("status", machineAllFiltersDTO.getStatus());
         query.setParameter("last_maintenance", machineAllFiltersDTO.getLast_maintenance());
         return query.getResultList();
+    }
+
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CACHEABLE + "findAllByMachineAllFilters", allEntries = true, key = "#id"),
+            @CacheEvict(cacheNames = CACHEABLE + "countAllByMachineAllFilters", allEntries = true, key = "#id"),
+            @CacheEvict(cacheNames = CACHEABLE + "excelAllByMachineAllFilters", allEntries = true, key = "#id"),
+            @CacheEvict(cacheNames =   "UsercountInformation", allEntries = true, key = "#id"),
+    })
+    @Transactional
+    public void deleteMachine(String id) {
+        Machines machine = entityManager.find(Machines.class, id);
+        entityManager.remove(machine);
     }
 }

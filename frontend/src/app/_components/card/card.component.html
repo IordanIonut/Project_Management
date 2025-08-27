@@ -1,7 +1,11 @@
 <div class="stats">
   <div
     class="box total-projects"
-    [ngStyle]="{ background: card.color, color: 'white' }"
+    [ngClass]="{ selected: cardSelected }"
+    [ngStyle]="{
+      background: cardSelected !== card ? card.color : '',
+      color: 'white'
+    }"
     (click)="onCardClick()"
   >
     <p>{{ card.name }}</p>

@@ -1,18 +1,18 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
 
-import { CommentComponent } from './comment.component';
+import { ValidateDeleteComponent } from './validate-delete.component';
 
-describe('CommentComponent', () => {
-  let component: CommentComponent;
-  let fixture: ComponentFixture<CommentComponent>;
+describe('ValidateDeleteComponent', () => {
+  let component: ValidateDeleteComponent;
+  let fixture: ComponentFixture<ValidateDeleteComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [CommentComponent]
+      imports: [ValidateDeleteComponent]
     })
     .compileComponents();
 
-    fixture = TestBed.createComponent(CommentComponent);
+    fixture = TestBed.createComponent(ValidateDeleteComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
   });

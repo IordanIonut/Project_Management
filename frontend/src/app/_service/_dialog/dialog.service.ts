@@ -1,16 +1,18 @@
 import { Injectable } from '@angular/core';
 import { MatDialog } from '@angular/material/dialog';
 import { ViewChartComponent } from '../../_dialog/view-chart/view-chart.component';
-import { CommentComponent } from '../../_dialog/comment/comment.component';
 import { Observable } from 'rxjs';
 import { ValidateChangeComponent } from '../../_dialog/validate-change/validate-change.component';
 import { ViewLineComponent } from '../../_dialog/view-line/view-line.component';
 import { ViewPolarComponent } from '../../_dialog/view-polar/view-polar.component';
 import { ViewType } from '../../_dialog/view-type';
 import { ViewData } from '../../_dialog/view-data';
-import { validateType } from '../../_dialog/validate-change/validate-type';
-import { VALIDATE_STATUS } from '../../_dialog/validate-change/validate-status';
 import { SearchComponent } from '../../_dialog/search/search.component';
+import { ValidateDeleteComponent } from '../../_dialog/validate-delete/validate-delete.component';
+import { DeleteType } from '../../_dialog/validate-delete/delete-type';
+import { CHANGE_STATUS } from '../../_dialog/validate-change/change-status';
+import { ChangeType } from '../../_dialog/validate-change/change-type';
+import { GenerateType } from '../../_components/generate-table/generete-type';
 
 @Injectable({
   providedIn: 'root',
@@ -44,9 +46,12 @@ export class DialogService {
     return dialogRef.afterClosed();
   }
 
-  openDialogCommentTask(taskId: string): Observable<any> {
-    const dialogRef = this.dialog.open(CommentComponent, {
-      data: { id: taskId },
+  openDialogDeleteElement(
+    selected: GenerateType,
+    type: DeleteType
+  ): Observable<any> {
+    const dialogRef = this.dialog.open(ValidateDeleteComponent, {
+      data: { selected: selected, type: type },
       restoreFocus: false,
     });
 
@@ -55,9 +60,9 @@ export class DialogService {
 
   openDialogValidateChange(
     key: string,
-    type: validateType,
-    newStatus: VALIDATE_STATUS,
-    oldStatus: VALIDATE_STATUS
+    type: ChangeType,
+    newStatus: CHANGE_STATUS,
+    oldStatus: CHANGE_STATUS
   ): Observable<any> {
     const dialogRef = this.dialog.open(ValidateChangeComponent, {
       data: {

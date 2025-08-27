@@ -21,11 +21,22 @@
       class="w-4/12"
       *ngFor="let card of cards"
       [card]="card"
+      [cardSelected]="cardSelected"
       (cardClicked)="onCardClick(card)"
     ></app-card>
   </div>
+
+  <app-generate-table
+    *ngIf="typeMode === 'edit' || typeMode === 'delete' || !!rowSelected"
+    [keys]="keys"
+    [type]="type"
+    [isHidden]="isTableHidden"
+    (eventRow)="onEventRowSelected($event)"
+    (eventCard)="onEventCardSelected($event)"
+  ></app-generate-table>
+
   <mat-card
-    *ngIf="typeMode === 'add'"
+    *ngIf="typeMode === 'add' || !!rowSelected"
     class="flex flex-col items-center self-center m-2 w-10/12"
   >
     <form class="pr-5 pl-5 w-full" [formGroup]="form">
@@ -45,12 +56,4 @@
       </div>
     </form>
   </mat-card>
-  <app-generate-table
-    *ngIf="typeMode === 'edit' || typeMode === 'delete'"
-    [keys]="keys"
-    [type]="type"
-    [isHidden]="shouldHideTable"
-    (eventRow)="onEventRowSelected($event)"
-    (hidden)="setHiddenTable()"
-  ></app-generate-table>
 </mat-card>

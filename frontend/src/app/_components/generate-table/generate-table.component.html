@@ -1,9 +1,10 @@
 <div class="flex flex-row justify-between items-center gap-4" *ngIf="type">
   <app-card
     class="w-4/12"
-    *ngFor="let card of visibleCards()"
-    [card]="card"
-    (cardClicked)="onCardClick(card)"
+    *ngFor="let item of visibleCards()"
+    [card]="item"
+    [cardSelected]="card"
+    (cardClicked)="onCardClick(item)"
   ></app-card>
 </div>
 <div class="divide"></div>

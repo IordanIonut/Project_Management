@@ -1,10 +1,17 @@
 <mat-dialog-content>
   <div class="flex flex-row items-center gap-3 p-4 bg-blue-50 rounded-md mb-4">
     <mat-icon color="primary" class="text-blue-600">info</mat-icon>
-    <span class="text-base text-blue-900 font-medium">{{ message }}</span>
+    <span
+      class="text-base text-blue-900 font-medium"
+      [innerHTML]="message"
+    ></span>
   </div>
 
-  <div class="flex justify-end gap-2 mt-4">
+  <div class="flex flex-row items-center gap-3 p-4 bg-blue-50 rounded-md mb-4">
+    <app-input [config]="config" [formGroup]="form"></app-input>
+  </div>
+
+  <div class="flex justify-center gap-2 mt-4">
     <button
       mat-raised-button
       color="primary"

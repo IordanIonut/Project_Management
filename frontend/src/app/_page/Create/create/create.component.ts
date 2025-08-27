@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, ViewChild } from '@angular/core';
 import { MatCardModule } from '@angular/material/card';
 import { NamePageComponent } from '../../../_components/name-page/name-page.component';
 import { NamePage } from '../../../_components/name-page/name-page';
@@ -12,8 +12,8 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { User } from '../../../_model/_interface/user';
-import { Machines } from '../../../_model/_interface/machine';
+import { isUser, User } from '../../../_model/_interface/user';
+import { isMachine, Machines } from '../../../_model/_interface/machine';
 import { GenInput } from '../../../_components/input/input';
 import { InputComponent } from '../../../_components/input/input.component';
 import { HttpClientModule } from '@angular/common/http';
@@ -27,6 +27,11 @@ import { AlertEnum } from '../../../_model/_common/alert';
 import { firstValueFrom } from 'rxjs';
 import { GenerateTableKeys } from '../../../_components/generate-table/generate-table-key';
 import { GenerateTableComponent } from '../../../_components/generate-table/generate-table.component';
+import { DialogService } from '../../../_service/_dialog/dialog.service';
+import { runInThisContext } from 'vm';
+import { DeleteType } from '../../../_dialog/validate-delete/delete-type';
+import { GenerateType } from '../../../_components/generate-table/generete-type';
+import { throws } from 'assert';
 
 @Component({
   selector: 'app-create',
@@ -46,18 +51,17 @@ import { GenerateTableComponent } from '../../../_components/generate-table/gene
   styleUrl: './create.component.scss',
 })
 export class CreateComponent {
-  page: NamePage = {
-    name: 'Create New ',
-    icon: ICONS.ADD,
-  };
+  @ViewChild(GenerateTableComponent) generateTable!: GenerateTableComponent;
+
+  page!: NamePage;
   cards: Card[] = [
     {
-      name: 'User',
+      name: ENUM.User,
       icon: ICONS.EMPLOYEE,
       color: 'blue',
     },
     {
-      name: 'Machine',
+      name: ENUM.Machine,
       icon: ICONS.MACHINE,
       color: 'red',
     },
@@ -65,22 +69,25 @@ export class CreateComponent {
   configs: GenInput[] = [];
 
   type: boolean = true;
-  cardSelected!: Card;
+  cardSelected: Card = this.cards[0];
   form!: FormGroup;
 
   keys!: GenerateTableKeys[];
   isHiddenInformation: boolean = false;
   isBackHidden: boolean = false;
+  isTableHidden: boolean = false;
   typeMode!: 'edit' | 'add' | 'delete';
+  rowSelected!: TYPES;
 
   constructor(
     private _fb: FormBuilder,
     private _alertService: AlertService,
+    private _dialogService: DialogService,
     private _userService: UserService,
     private _machineService: MachineService
   ) {
-    this.typeMode = 'edit';
-    this.onCardClick(this.cards[0]);
+    this.onEdit();
+    this.onCardClick(this.cardSelected);
   }
 
   onType(event: boolean) {
@@ -94,6 +101,10 @@ export class CreateComponent {
       content: [],
     };
     this.typeMode = 'edit';
+    this.isBackHidden = false;
+    this.isTableHidden = false;
+    this.rowSelected = null;
+    this.onCardClick(this.cardSelected);
   }
 
   onDelete() {
@@ -103,6 +114,10 @@ export class CreateComponent {
       content: [],
     };
     this.typeMode = 'delete';
+    this.isBackHidden = false;
+    this.isTableHidden = false;
+    this.rowSelected = null;
+    this.onCardClick(this.cardSelected);
   }
 
   onAdd() {
@@ -112,7 +127,10 @@ export class CreateComponent {
       content: [],
     };
     this.typeMode = 'add';
-    this.onCardClick(this.cards[0]);
+    this.isBackHidden = false;
+    this.isTableHidden = false;
+    this.rowSelected = null;
+    this.onCardClick(this.cardSelected);
   }
 
   onBack() {
@@ -122,17 +140,27 @@ export class CreateComponent {
 
   onCardClick(card: Card) {
     this.cardSelected = card;
-    this.page.content = [card.name];
-    if (this.typeMode === 'add' || this.typeMode === 'edit') {
+    this.rowSelected = null;
+    if (this.typeMode === 'delete' || this.typeMode === 'edit') {
       this.isBackHidden = false;
+      this.isTableHidden = false;
       this.keys = [GenerateTableKeys.USER_ALL, GenerateTableKeys.MACHINE_ALL];
     } else {
-      this.isBackHidden = true;
+      this.isBackHidden = false;
+      this.isTableHidden = false;
       this.keys = [];
     }
 
     switch (this.typeMode) {
       case 'add': {
+        this.addEvent(card);
+        break;
+      }
+      case 'edit': {
+        this.addEvent(card);
+        break;
+      }
+      case 'delete': {
         this.addEvent(card);
         break;
       }
@@ -142,20 +170,38 @@ export class CreateComponent {
     }
   }
 
-  onEventRowSelected(event: any) {
-    console.log(event);
-    this.isBackHidden = true;
+  onEventRowSelected(event: GenerateType) {
+    switch (this.typeMode) {
+      case 'edit': {
+        this.isBackHidden = true;
+        this.isTableHidden = true;
+        this.rowSelected = event as TYPES;
+        this.addEvent(this.cardSelected);
+        break;
+      }
+      case 'delete': {
+        const key = Object.keys(ENUM).find(
+          (key) => ENUM[key as keyof typeof ENUM] === this.cardSelected.name
+        ) as keyof typeof DeleteType;
+        const deleteTypeValue: DeleteType = DeleteType[key];
+        this._dialogService
+          .openDialogDeleteElement(event, deleteTypeValue)
+          .subscribe((result) => {
+            if (result) {
+              this.generateTable.onCardClick(this.generateTable.card);
+              this.generateTable.onInformation();
+            }
+          });
+        break;
+      }
+      default: {
+        console.error('not find onEventRowSelected(): ' + this.typeMode);
+      }
+    }
   }
 
-  setHiddenTable() {
-    this.isBackHidden = !this.isBackHidden;
-  }
-
-  get shouldHideTable(): boolean {
-    return (
-      (this.typeMode !== 'edit' && this.typeMode !== 'delete') ||
-      this.isBackHidden
-    );
+  onEventCardSelected(event: any) {
+    this.cardSelected = event;
   }
 
   async onSaveNewInstance() {
@@ -168,7 +214,7 @@ export class CreateComponent {
             this._userService.findByEmail(this.form.get('email')?.value)
           );
 
-          if (machines !== null) {
+          if (machines !== null && this.rowSelected === null) {
             this._alertService.show('Email already exists.', AlertEnum.ERROR);
             return;
           }
@@ -257,28 +303,26 @@ export class CreateComponent {
           }
 
           if (this.form.valid) {
-            const user: User = {
-              id: null,
+            let originalUser = this.rowSelected as User;
+            let updatedUser: User = {
+              ...originalUser,
               username: this.form.get('username')?.value,
               email: this.form.get('email')?.value,
               password: this.form.get('password')?.value,
               role: this.form.get('role')?.value,
               employees_id: {
-                id: null,
+                ...originalUser.employees_id,
                 name: this.form.get('employee_name')?.value,
                 department: this.form.get('department')?.value,
                 hire_date: this.form.get('hire_date')?.value,
                 role: this.form.get('employee_role')?.value,
               },
             };
-            this._userService.save(user).subscribe({
+
+            this._userService.save(updatedUser).subscribe({
               next: (user) => {
                 console.log('User created successfully:', user);
-                this._alertService.show(
-                  'User created successfully.',
-                  AlertEnum.SUCCESS
-                );
-                this.setFormDefaults();
+                this.successSaveOrUpdate('User created successfully.');
               },
               error: (error) => {
                 console.error('Error creating user:', error);
@@ -298,7 +342,7 @@ export class CreateComponent {
             )
           );
 
-          if (machines !== null) {
+          if (machines !== null && this.rowSelected === null) {
             this._alertService.show('Machine name existing.', AlertEnum.ERROR);
             return;
           }
@@ -329,8 +373,10 @@ export class CreateComponent {
             return;
           }
           if (this.form.valid) {
+            let originalMachine = this.rowSelected as Machines;
+
             const machine: Machines = {
-              id: null,
+              ...originalMachine,
               name: this.form.get('name')?.value,
               type: this.form.get('type')?.value,
               status: this.form.get('status')?.value,
@@ -339,12 +385,7 @@ export class CreateComponent {
             this._machineService.save(machine).subscribe({
               next: (savedMachine) => {
                 console.log('Machine created successfully:', savedMachine);
-                this._alertService.show(
-                  'Machine created successfully.',
-                  AlertEnum.SUCCESS
-                );
-                this.form.reset();
-                this.setFormDefaults();
+                this.successSaveOrUpdate('Machine created successfully.');
               },
               error: (error) => {
                 console.error('Error creating machine:', error);
@@ -449,7 +490,7 @@ export class CreateComponent {
         break;
       }
       default: {
-        console.error('Unknown card type');
+        console.error('Unknown card type addEvent():' + card.name);
       }
     }
   }
@@ -457,37 +498,91 @@ export class CreateComponent {
   private setFormDefaults() {
     switch (this.cardSelected.name) {
       case ENUM.User: {
-        this.form = this._fb.group({
-          username: ['', Validators.required],
-          password: [
-            '',
-            [
-              Validators.required,
-              Validators.minLength(8),
-              Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/),
+        if (isUser(this.rowSelected)) {
+          this.form = this._fb.group({
+            username: [this.rowSelected.username, Validators.required],
+            password: [
+              '',
+              [
+                Validators.required,
+                Validators.minLength(8),
+                Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/),
+              ],
             ],
-          ],
-          email: ['', [Validators.required, Validators.email]],
-          role: ['NONE', Validators.required],
-          employee_name: ['', Validators.required],
-          department: ['', Validators.required],
-          employee_role: ['NONE', Validators.required],
-        });
+            email: [
+              this.rowSelected.email,
+              [Validators.required, Validators.email],
+            ],
+            role: [this.rowSelected.role, Validators.required],
+            employee_name: [
+              this.rowSelected.employees_id.name,
+              Validators.required,
+            ],
+            department: [
+              this.rowSelected.employees_id.department,
+              Validators.required,
+            ],
+            employee_role: [
+              this.rowSelected.employees_id.role,
+              Validators.required,
+            ],
+          });
+        } else {
+          this.form = this._fb.group({
+            username: ['', Validators.required],
+            password: [
+              '',
+              [
+                Validators.required,
+                Validators.minLength(8),
+                Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/),
+              ],
+            ],
+            email: ['', [Validators.required, Validators.email]],
+            role: ['NONE', Validators.required],
+            employee_name: ['', Validators.required],
+            department: ['', Validators.required],
+            employee_role: ['NONE', Validators.required],
+          });
+        }
         break;
       }
       case ENUM.Machine: {
-        this.form = this._fb.group({
-          name: ['', Validators.required],
-          type: ['', Validators.required],
-          status: ['NONE', Validators.required],
-        });
+        if (isMachine(this.rowSelected)) {
+          this.form = this._fb.group({
+            name: [this.rowSelected.name, Validators.required],
+            type: [this.rowSelected.type, Validators.required],
+            status: [this.rowSelected.status, Validators.required],
+          });
+        } else {
+          this.form = this._fb.group({
+            name: ['', Validators.required],
+            type: ['', Validators.required],
+            status: ['NONE', Validators.required],
+          });
+        }
         break;
+      }
+      default: {
+        console.error('not found setFormDefaults() ' + this.cardSelected.name);
       }
     }
   }
+
+  private successSaveOrUpdate(message: string) {
+    this.isTableHidden = false;
+    this.isBackHidden = false;
+    this.rowSelected = null;
+    this._alertService.show(message, AlertEnum.SUCCESS);
+    this.form.reset();
+    this.setFormDefaults();
+    console.log(this.isTableHidden);
+    this.generateTable.onCardClick(this.generateTable.card);
+    this.generateTable.onInformation();
+  }
 }
-type TYPES = User | Machines;
+type TYPES = User | Machines | null;
 enum ENUM {
-  User = 'User',
-  Machine = 'Machine',
+  User = 'All Users',
+  Machine = 'All Machine',
 }

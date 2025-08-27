@@ -1,4 +1,4 @@
-export enum validateType {
+export enum ChangeType {
   MACHINE,
   PROCESS_LOG,
   CAR,

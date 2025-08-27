@@ -112,4 +112,16 @@ public class UserController {
         }
     }
 
+    @DeleteMapping("/delete-by")
+    public ResponseEntity<Void> deleteUser(@RequestParam("id") String id){
+        try {
+            log.info("deleteUser() - Successful.....");
+            this.userService.deleteUser(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error in deleteUser: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
 }

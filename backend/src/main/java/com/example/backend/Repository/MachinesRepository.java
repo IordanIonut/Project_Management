@@ -4,6 +4,7 @@ import com.example.backend.Model.Class.Machines;
 import com.example.backend.Model.Dto.MachineAllFiltersDTO;
 import com.example.backend.Model.Enum.MachineStatus;
 import com.example.backend.Model.View.CountView;
+import jakarta.transaction.Transactional;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -47,4 +48,9 @@ public interface MachinesRepository extends JpaRepository<Machines, String> {
 
     @Query("SELECT COUNT(m.id) FROM Machines m WHERE 1 = 1" + MachineAllFiltersDTO.QUERY)
     Long countAllByMachineAllFilters(@Param("type") final String type, @Param("name") final String name, @Param("status") final String status, @Param("last_maintenance") final LocalDate last_maintenance);
+
+    @Modifying
+    @Transactional
+    @Query("DELETE FROM Machines m WHERE m.id = :id")
+    void deleteById(@Param("id") String id);
 }

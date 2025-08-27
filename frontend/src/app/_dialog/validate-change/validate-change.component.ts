@@ -6,8 +6,6 @@ import {
   MatDialogRef,
 } from '@angular/material/dialog';
 import { MatIconModule } from '@angular/material/icon';
-import { VALIDATE_STATUS } from './validate-status';
-import { validateType } from './validate-type';
 import { MachineService } from '../../_service/_model/machine.service';
 import { HttpClientModule } from '@angular/common/http';
 import { AlertService } from '../../_service/_alert/alert.service';
@@ -17,17 +15,14 @@ import { ProcessLogService } from '../../_service/_model/process-log.service';
 import { ProcessLogStatus } from '../../_model/_enum/process-log-status';
 import { CarsService } from '../../_service/_model/cars.service';
 import { CarsStatus } from '../../_model/_enum/cars-status';
+import { ChangeType } from './change-type';
+import { CHANGE_STATUS } from './change-status';
 
 @Component({
   selector: 'app-validate-change',
   standalone: true,
-  imports: [
-    HttpClientModule,
-    MatDialogContainer,
-    MatDialogContent,
-    MatIconModule,
-  ],
-  providers: [MachineService, CarsService, ProcessLogService, AlertService],
+  imports: [HttpClientModule, MatDialogContent, MatIconModule],
+  providers: [MachineService, CarsService, ProcessLogService],
   templateUrl: './validate-change.component.html',
   styleUrl: './validate-change.component.scss',
 })
@@ -37,9 +32,9 @@ export class ValidateChangeComponent {
     @Inject(MAT_DIALOG_DATA)
     public data: {
       key: string;
-      type: validateType;
-      newStatus: VALIDATE_STATUS;
-      oldStatus: VALIDATE_STATUS;
+      type: ChangeType;
+      newStatus: CHANGE_STATUS;
+      oldStatus: CHANGE_STATUS;
     },
     private _alertService: AlertService,
     private dialogRef: MatDialogRef<ValidateChangeComponent>,
@@ -52,7 +47,7 @@ export class ValidateChangeComponent {
 
   ngOnInit(): void {
     switch (this.data.type) {
-      case validateType.PROCESS_LOG: {
+      case ChangeType.PROCESS_LOG: {
         this.message =
           'You are sure if want to change status from ' +
           this.data.oldStatus +
@@ -61,7 +56,7 @@ export class ValidateChangeComponent {
           '?';
         break;
       }
-      case validateType.MACHINE: {
+      case ChangeType.MACHINE: {
         this.message =
           'You are sure if want to change status from ' +
           this.data.oldStatus +
@@ -70,7 +65,7 @@ export class ValidateChangeComponent {
           '?';
         break;
       }
-      case validateType.CAR: {
+      case ChangeType.CAR: {
         this.message =
           'You are sure if want to change status from ' +
           this.data.oldStatus +
@@ -87,7 +82,7 @@ export class ValidateChangeComponent {
 
   onSave() {
     switch (this.data.type) {
-      case validateType.PROCESS_LOG: {
+      case ChangeType.PROCESS_LOG: {
         this._processLogService
           .updateProcessLogStatus(
             this.data.key,
@@ -103,7 +98,7 @@ export class ValidateChangeComponent {
           });
         break;
       }
-      case validateType.MACHINE: {
+      case ChangeType.MACHINE: {
         this._machineService
           .updateMachineStatus(
             this.data.key,
@@ -119,7 +114,7 @@ export class ValidateChangeComponent {
           });
         break;
       }
-      case validateType.CAR: {
+      case ChangeType.CAR: {
         this._carsService
           .updateCarsStatus(this.data.key, this.data.newStatus as CarsStatus)
           .subscribe({

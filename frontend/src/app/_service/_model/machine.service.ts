@@ -89,4 +89,8 @@ export class MachineService {
       { machineAllFiltersDTO: machineAllFiltersDTO } as FindByRequestDTO
     );
   }
+
+  deleteById(id: string): Observable<any> {
+    return this._http.delete<any>(`${this.authUrl}/delete-by?id=${id}`);
+  }
 }

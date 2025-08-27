@@ -112,4 +112,16 @@ public class MachinesController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
+
+    @DeleteMapping("/delete-by")
+    public ResponseEntity<Void> deleteMachine(@RequestParam("id") String id){
+        try {
+            log.info("deleteMachine() - Successful.....");
+            this.machinesService.deleteMachine(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error in deleteMachine: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
 }

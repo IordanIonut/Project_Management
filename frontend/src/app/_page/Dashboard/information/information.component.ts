@@ -21,7 +21,6 @@ import { GenerateTableComponent } from '../../../_components/generate-table/gene
 import { isMachine, Machines } from '../../../_model/_interface/machine';
 import { Segment } from './segment';
 import { AlertEnum } from '../../../_model/_common/alert';
-import { validateType } from '../../../_dialog/validate-change/validate-type';
 import { MachineService } from '../../../_service/_model/machine.service';
 import { MachineStatus } from '../../../_model/_enum/machine-status';
 import { InformationComponent as ComInformationComponent } from '../../../_components/information/information.component';
@@ -33,6 +32,7 @@ import { UserService } from '../../../_service/_model/user.service';
 import { ViewData } from '../../../_dialog/view-data';
 import { QualityChecksService } from '../../../_service/_model/quality-checks.service';
 import { error } from 'console';
+import { ChangeType } from '../../../_dialog/validate-change/change-type';
 
 @Component({
   selector: 'app-information',
@@ -235,7 +235,7 @@ export class InformationComponent {
       this._dialogService
         .openDialogValidateChange(
           this.key,
-          validateType.PROCESS_LOG,
+          ChangeType.PROCESS_LOG,
           this.form.value.status,
           this.data.status as ProcessLogStatus
         )
@@ -246,7 +246,7 @@ export class InformationComponent {
       this._dialogService
         .openDialogValidateChange(
           this.key,
-          validateType.MACHINE,
+          ChangeType.MACHINE,
           this.form.value.status,
           this.data.status
         )
@@ -257,7 +257,7 @@ export class InformationComponent {
       this._dialogService
         .openDialogValidateChange(
           this.key,
-          validateType.CAR,
+          ChangeType.CAR,
           this.form.value.status,
           this.data.status
         )

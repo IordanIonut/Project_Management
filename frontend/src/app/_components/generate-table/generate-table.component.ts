@@ -64,6 +64,7 @@ import { isMachine, Machines } from '../../_model/_interface/machine';
 import { User } from '../../_model/_interface/user';
 import { UserAllFiltersDTO } from '../../_model/_dto/user-all-filters-dto';
 import { MachineAllFiltersDTO } from '../../_model/_dto/machine-all-filter.dto';
+import { GenerateType } from './generete-type';
 
 @Component({
   selector: 'app-generate-table',
@@ -94,12 +95,13 @@ export class GenerateTableComponent {
   @Input() type: boolean = true;
   @Input() isHidden: boolean = false;
 
-  @Output() eventRow: EventEmitter<TYPES> = new EventEmitter<TYPES>();
-  @Output() hidden: EventEmitter<void> = new EventEmitter<void>();
+  @Output() eventRow: EventEmitter<GenerateType> =
+    new EventEmitter<GenerateType>();
+  @Output() eventCard: EventEmitter<Card> = new EventEmitter<Card>();
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild(MatSort) sort!: MatSort;
-  data!: TYPES[];
+  data!: GenerateType[];
   count!: number;
   card!: Card;
   form!: { [key: string]: FormGroup };
@@ -952,6 +954,14 @@ export class GenerateTableComponent {
     private _router: Router
   ) {
     this.onDefaultForms();
+    this.onInformation();
+  }
+
+  ngOnInit() {
+    this.onCardClick(this.cards[this.keys[0]]!);
+  }
+
+  onInformation() {
     this._userService
       .countInformation(
         this._JwtService.getUserInfo()?.name!,
@@ -980,10 +990,6 @@ export class GenerateTableComponent {
           console.error(error);
         },
       });
-  }
-
-  ngOnInit() {
-    this.onCardClick(this.cards[this.keys[0]]!);
   }
 
   onSortChanged(sort: any) {
@@ -1205,10 +1211,6 @@ export class GenerateTableComponent {
     this.card = card;
     this.onColumns();
 
-    if (this.isHidden === true) {
-      this.hidden.emit();
-    }
-
     switch (card.name) {
       case GenerateTableKeys.PROCESS_LOG: {
         this._processLogService
@@ -1359,6 +1361,8 @@ export class GenerateTableComponent {
               console.error(error);
             },
           });
+        this.eventCard.emit(card);
+
         break;
       }
       case GenerateTableKeys.MACHINE_ALL: {
@@ -1377,6 +1381,7 @@ export class GenerateTableComponent {
               console.error(error);
             },
           });
+        this.eventCard.emit(card);
         break;
       }
       default: {
@@ -1415,7 +1420,7 @@ export class GenerateTableComponent {
     return this.cardSettings[this.card.name].changePage.pageIndex;
   }
 
-  onDblClickRow(event: TYPES) {
+  onDblClickRow(event: GenerateType) {
     switch (this.card.name) {
       case GenerateTableKeys.PROCESS_LOG: {
         if (isProcessLog(event)) {
@@ -1463,7 +1468,11 @@ export class GenerateTableComponent {
         }
         break;
       }
-      case GenerateTableKeys.USER_ALL || GenerateTableKeys.MACHINE_ALL: {
+      case GenerateTableKeys.USER_ALL: {
+        this.eventRow.emit(event);
+        break;
+      }
+      case GenerateTableKeys.MACHINE_ALL: {
         this.eventRow.emit(event);
         break;
       }
@@ -1862,12 +1871,3 @@ export class GenerateTableComponent {
     );
   }
 }
-
-type TYPES =
-  | ProcessLog
-  | Cars
-  | QualityChecks
-  | CarsParts
-  | PartProduction
-  | Machines
-  | User;

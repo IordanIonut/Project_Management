@@ -12,9 +12,12 @@ import { MatIconModule } from '@angular/material/icon';
 })
 export class CardComponent {
   @Input() card!: Card;
+  @Input() cardSelected!: Card;
   @Output() cardClicked = new EventEmitter<any>();
 
   constructor() {}
+
+  ngAfterViewInit(): void {}
 
   onCardClick() {
     this.cardClicked.emit(this.card);

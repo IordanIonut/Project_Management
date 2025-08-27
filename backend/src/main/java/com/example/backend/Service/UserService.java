@@ -9,9 +9,12 @@ import com.example.backend.Repository.UserRepository;
 import com.example.backend.Utility.TableRequest;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.Transient;
 import jakarta.persistence.TypedQuery;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -65,14 +68,7 @@ public class UserService {
 
     @Cacheable(cacheNames = CACHEABLE + "countInformation", key = "#name + '_' + #machine_name_or_id")
     public UserInformationDTO countInformation(final String name, final String machine_name_or_id) {
-        return new UserInformationDTO(this.processLogService.countByUserNameAndProcessLogFilters(name, new ProcessLogsFilterDTO()),
-                this.carsService.countByUsernameAndCarsFilters(name, new CarsFiltersDTO()),
-                this.qualityChecksService.countByUserName(name, new QualityChecksFiltersDTO()),
-                this.carsPartsService.countByUserNameAndCarsPartsFilters(name, new CarsPartsFiltersDTO()),
-                this.processLogService.countByUsernameAndMachineUsedFilters(name, new MachineUsedFiltersDTO()),
-                this.partProductionService.countByMachineNameOrIdAndPartProductionFilter(machine_name_or_id, new PartProductionFiltersDTO()),
-                this.processLogService.countByMachineNameOrIdAndMachineFilters(machine_name_or_id, new MachineFiltersDTO()),
-                this.countAllByUserAllFilters(new UserAllFiltersDTO()), this.machinesService.countAllBy(new MachineAllFiltersDTO()));
+        return new UserInformationDTO(this.processLogService.countByUserNameAndProcessLogFilters(name, new ProcessLogsFilterDTO()), this.carsService.countByUsernameAndCarsFilters(name, new CarsFiltersDTO()), this.qualityChecksService.countByUserName(name, new QualityChecksFiltersDTO()), this.carsPartsService.countByUserNameAndCarsPartsFilters(name, new CarsPartsFiltersDTO()), this.processLogService.countByUsernameAndMachineUsedFilters(name, new MachineUsedFiltersDTO()), this.partProductionService.countByMachineNameOrIdAndPartProductionFilter(machine_name_or_id, new PartProductionFiltersDTO()), this.processLogService.countByMachineNameOrIdAndMachineFilters(machine_name_or_id, new MachineFiltersDTO()), this.countAllByUserAllFilters(new UserAllFiltersDTO()), this.machinesService.countAllBy(new MachineAllFiltersDTO()));
     }
 
     @Cacheable(cacheNames = CACHEABLE + "findUserByUsernameOrId", key = "#user_username_or_id_or_email")
@@ -90,16 +86,38 @@ public class UserService {
         return this.userRepository.findUsersByUsername(user_username, BackendApplication.generatePaginateOfSearch());
     }
 
+    @Transient
+    @CacheEvict(cacheNames = CACHEABLE + "findAllByUserAllFilters", allEntries = true)
     public void save(User user) {
-        user.setId(BackendApplication.generateId());
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
-
         Employees emp = user.getEmployees_id();
-        emp.setId(BackendApplication.generateId());
-        emp.setUser_id(user);
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        if (user.getId() == null) {
+            user.setId(BackendApplication.generateId());
+            emp.setId(BackendApplication.generateId());
+            emp.setUser_id(user);
 
-        employeesService.save(emp);
-        userRepository.save(user);
+            employeesService.save(emp);
+            userRepository.save(user);
+        } else {
+            Employees existingEmp = employeesService.findById(emp.getId()).orElseGet(null);
+            if (existingEmp != null) {
+                existingEmp.setName(emp.getName());
+                existingEmp.setDepartment(emp.getDepartment());
+                existingEmp.setHire_date(emp.getHire_date());
+                existingEmp.setRole(emp.getRole());
+                employeesService.save(existingEmp);
+            }
+            Optional<User> existingUserOpt = userRepository.findById(user.getId());
+            if (existingUserOpt.isPresent()) {
+                User existingUser = existingUserOpt.get();
+                existingUser.setUsername(user.getUsername());
+                existingUser.setEmail(user.getEmail());
+                existingUser.setPassword(user.getPassword());
+                existingUser.setRole(user.getRole());
+                existingUser.setEmployees_id(existingEmp);
+                userRepository.save(existingUser);
+            }
+        }
     }
 
     @Cacheable(cacheNames = CACHEABLE + "findAllByUserAllFilters", key = "@tableRequestCacheKeyHelper.buildProcessLogKey(#tableRequest) + @usersAllCacheKeyHelper.buildUserAllKey(#userAllFiltersDTO)")
@@ -122,4 +140,16 @@ public class UserService {
         query.setParameter("employees_id_name", userAllFiltersDTO.getEmployees_id_name());
         return query.getResultList();
     }
+
+
+    @Caching(evict = {
+            @CacheEvict(cacheNames = CACHEABLE + "findAllByUserAllFilters", allEntries = true, key = "#id"),
+            @CacheEvict(cacheNames = CACHEABLE + "countAllByUserAllFilters", allEntries = true, key = "#id"),
+            @CacheEvict(cacheNames = CACHEABLE + "excelAllByUserAllFilters", allEntries = true, key = "#id"),
+            @CacheEvict(cacheNames = CACHEABLE + "countInformation", allEntries = true, key = "#id"),
+    })
+    public void deleteUser(String id) {
+        this.userRepository.deleteById(id);
+    }
+
 }
