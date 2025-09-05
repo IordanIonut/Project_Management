@@ -64,7 +64,10 @@ export class ViewChartComponent {
   ) {}
 
   ngAfterViewInit(): void {
-    if (isProcessLog(this.data.data)) {
+    if (
+      isProcessLog(this.data.data) &&
+      this.data.type === ViewType.PROCESS_LOG
+    ) {
       this._machineService
         .countStatusByMachineId(this.data.data.machine_id.id!)
         .subscribe({
@@ -75,7 +78,7 @@ export class ViewChartComponent {
             console.error(error);
           },
         });
-    } else if (isCars(this.data.data)) {
+    } else if (isCars(this.data.data) && this.data.type === ViewType.CARS) {
       this._carsService
         .countStatusByCarModelId(this.data.data.model_id.id)
         .subscribe({
@@ -89,7 +92,10 @@ export class ViewChartComponent {
             console.error(error);
           },
         });
-    } else if (isMachine(this.data.data)) {
+    } else if (
+      isMachine(this.data.data) &&
+      this.data.type === ViewType.MACHINES
+    ) {
       this._machineService
         .countStatusByMachineId(this.data.data!.id!)
         .subscribe({
@@ -100,6 +106,10 @@ export class ViewChartComponent {
             console.error(error);
           },
         });
+    } else {
+      console.error(
+        'not found ViewChartComponent + ngAfterViewInit()' + this.data.type
+      );
     }
   }
 

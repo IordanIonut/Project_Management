@@ -1,6 +1,7 @@
 package com.example.backend.Controller;
 
 import com.example.backend.Model.Class.Cars;
+import com.example.backend.Model.Class.Machines;
 import com.example.backend.Model.Dto.CarsFiltersDTO;
 import com.example.backend.Model.Dto.CountViewDTO;
 import com.example.backend.Model.Dto.FindByRequestDTO;
@@ -25,7 +26,7 @@ public class CarsController {
     private CarsService carsService;
 
     @PostMapping("/find/by")
-    public ResponseEntity<GroupedResult> postDataByUserNameAndCarsFilters(@RequestParam("name") final String name, @RequestBody FindByRequestDTO request) {
+    public ResponseEntity<GroupedResult> postDataByUserNameAndCarsFilters(@RequestParam(value = "name", required = false) final String name, @RequestBody FindByRequestDTO request) {
         try {
             log.info("postDataByUserNameAndCarsFilters() - Successful.....");
             TableRequest tableRequest = request.getTableRequest();
@@ -38,7 +39,7 @@ public class CarsController {
     }
 
     @PostMapping("/count/by")
-    public ResponseEntity<Long> countByUsernameAndCarsFilters(@RequestParam("name") final String name, @RequestBody FindByRequestDTO request) {
+    public ResponseEntity<Long> countByUsernameAndCarsFilters(@RequestParam(value = "name", required = false) final String name, @RequestBody FindByRequestDTO request) {
         try {
             log.info("countByUsernameAndCarsFilters() - Successful.....");
             CarsFiltersDTO carsFiltersDTO = request.getCarsFiltersDTO();
@@ -50,7 +51,7 @@ public class CarsController {
     }
 
     @PostMapping("/excel/find/by")
-    public ResponseEntity<List<Object[]>> postExcelByUserNameAncCarsFilter(@RequestParam("name") final String name, @RequestParam("columns") final String columns, @RequestBody FindByRequestDTO request) {
+    public ResponseEntity<List<Object[]>> postExcelByUserNameAncCarsFilter(@RequestParam(value = "name", required = false) final String name, @RequestParam("columns") final String columns, @RequestBody FindByRequestDTO request) {
         try {
             log.info("postExcelByUserNameAncCarsFilter() - Successful.....");
             CarsFiltersDTO carsFiltersDTO = request.getCarsFiltersDTO();
@@ -101,6 +102,30 @@ public class CarsController {
             return ResponseEntity.ok(this.carsService.canAccessPage(car_vin_or_id_or_name, username));
         } catch (Exception e) {
             log.error("Error in canAccessPage: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @PostMapping("/save")
+    public ResponseEntity<Void> save(@RequestBody Cars cars){
+        try {
+            log.info("save() - Successful.....");
+            this.carsService.save(cars);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error in save: {}", e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @DeleteMapping("/delete-by")
+    public ResponseEntity<Void> delete(@RequestParam("id") String id){
+        try {
+            log.info("delete() - Successful.....");
+            this.carsService.delete(id);
+            return ResponseEntity.ok().build();
+        } catch (Exception e) {
+            log.error("Error in delete: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }

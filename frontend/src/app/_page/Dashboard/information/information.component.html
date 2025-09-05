@@ -1,4 +1,4 @@
-<mat-card>
+<mat-card class="flex gap-2">
   <app-name-page
     [page]="page"
     [type]="type"
@@ -16,5 +16,6 @@
     *ngIf="keys"
     [keys]="keys"
     [type]="type"
+    [isHiddenCards]="isHiddenCards"
   ></app-generate-table>
 </mat-card>

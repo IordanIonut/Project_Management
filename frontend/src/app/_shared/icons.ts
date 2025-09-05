@@ -19,11 +19,13 @@ export const ICONS = {
   REMOVE: 'delete',
   MANAGEMENT: 'splitscreen_landscape',
   BACK: 'arrow_back',
+  DATE: 'date_range',
   ///CAR
   CAR_VIN: 'directions_car',
   CAR_STATUS: 'signal_wifi_statusbar_null',
   CAR_GENERATION: 'qr_code_2_add',
   CAR_RELEASE_YEAR: 'deployed_code',
+  CAR_MODEL: 'qr_code_2_add',
   ///PART PRODUCTION
   PART_PRODUCTION: 'production_quantity_limits',
   ///MACHINE

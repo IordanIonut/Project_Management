@@ -1,5 +1,6 @@
 import { ChangePage } from '../_common/change-page';
 import { SortPage } from '../_common/sort-page';
+import { CarModelFilterDTO } from './car-model-filter-dto';
 import { CarsFiltersDTO } from './cars-filter-dto';
 import { CarsPartsFilterDTO } from './cars-parts-filter-dto';
 import { MachineAllFiltersDTO } from './machine-all-filter.dto';
@@ -21,6 +22,7 @@ export interface FindByRequestDTO {
   machineFiltersDTO?: MachineFiltersDTO;
   userAllFiltersDTO?: UserAllFiltersDTO;
   machineAllFiltersDTO?: MachineAllFiltersDTO;
+  carModelFilterDTO?: CarModelFilterDTO;
 }
 
 export interface TableRequest {

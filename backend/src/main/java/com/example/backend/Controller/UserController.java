@@ -24,7 +24,7 @@ public class UserController {
     private UserService userService;
 
     @GetMapping("/information")
-    public ResponseEntity<UserInformationDTO> countInformation(@RequestParam("name") final String name, @RequestParam("machine_name_or_id") final String machine_name_or_id) {
+    public ResponseEntity<UserInformationDTO> countInformation(@RequestParam("name") final String name, @RequestParam(value = "machine_name_or_id", required = false) final String machine_name_or_id) {
         try {
             log.info("countInformation() - Successful.....");
             return ResponseEntity.ok(this.userService.countInformation(name, machine_name_or_id));

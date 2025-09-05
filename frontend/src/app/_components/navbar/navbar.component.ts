@@ -38,13 +38,13 @@ import { DialogService } from '../../_service/_dialog/dialog.service';
 export class NavbarComponent {
   routes: NavItem[] = [
     { name: 'Dashboard', route: '/dashboard/feed', icon: ICONS.HOME },
-    {
-      name: 'Employees',
-      route: '/dashboard/employee',
-      icon: ICONS.EMPLOYEE,
-    },
-    { name: 'Cars', route: '/dashboard/cars', icon: ICONS.CAR },
-    { name: 'Processes', route: '/dashboard/processes', icon: ICONS.PROCESS },
+    // {
+    //   name: 'Employees',
+    //   route: '/dashboard/employee',
+    //   icon: ICONS.EMPLOYEE,
+    // },
+    // { name: 'Cars', route: '/dashboard/cars', icon: ICONS.CAR },
+    // { name: 'Processes', route: '/dashboard/processes', icon: ICONS.PROCESS },
   ];
 
   feet: NavItem = this.routes[0];

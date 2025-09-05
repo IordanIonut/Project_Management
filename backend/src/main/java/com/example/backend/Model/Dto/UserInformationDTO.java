@@ -23,4 +23,6 @@ public class UserInformationDTO {
     //All
     private Long countAllUsers;
     private Long  countAllMachine;
+    private Long countAllCars;
+    private Long countAllCarModels;
 }

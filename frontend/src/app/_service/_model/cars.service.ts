@@ -24,7 +24,7 @@ export class CarsService {
   constructor(private _http: HttpClient) {}
 
   postDataByUserNameAndCarsFilters(
-    name: string,
+    name: string | null,
     changePage: ChangePage,
     sortPage: SortPage,
     carsFiltersDTO: CarsFiltersDTO
@@ -38,8 +38,9 @@ export class CarsService {
       carsFiltersDTO: carsFiltersDTO,
     };
     const params = new URLSearchParams();
-    params.append('name', name);
-
+    if (name !== null) {
+      params.append('name', name);
+    }
     return this._http.post<GroupResult<Cars>>(
       `${this.authUrl}/find/by?${params.toString()}`,
       requestBody
@@ -47,11 +48,13 @@ export class CarsService {
   }
 
   countByUsernameAndCarsFilters(
-    name: string,
+    name: string | null,
     carsFilterDTO: CarsFiltersDTO
   ): Observable<number> {
     const params = new URLSearchParams();
-    params.append('name', name);
+    if (name !== null) {
+      params.append('name', name);
+    }
     const requestBody = {
       carsFiltersDTO: carsFilterDTO,
     };
@@ -62,12 +65,14 @@ export class CarsService {
   }
 
   postExcelByUserNameAncCarsFilter(
-    name: string,
+    name: string | null,
     columns: string,
     carsFilterDTO: CarsFiltersDTO
   ): Observable<any[]> {
     const params = new URLSearchParams();
-    params.append('name', name);
+    if (name !== null) {
+      params.append('name', name);
+    }
     params.append('columns', columns);
     const requestBody = {
       carsFiltersDTO: carsFilterDTO,
@@ -110,5 +115,13 @@ export class CarsService {
     return this._http.get<Boolean>(
       `${this.authUrl}/can-access?${params.toString()}`
     );
+  }
+
+  save(cars: Cars): Observable<any> {
+    return this._http.post<any>(`${this.authUrl}/save`, cars);
+  }
+
+  delete(id: string): Observable<any> {
+    return this._http.delete<any>(`${this.authUrl}/delete-by?id=${id}`);
   }
 }

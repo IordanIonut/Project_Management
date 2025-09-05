@@ -27,7 +27,6 @@ public class Cars {
     @ManyToOne
     @JoinColumn(name = "model_id", referencedColumnName = "id")
     private CarModel model_id;
-    public static final String QUERY = " FROM Cars c LEFT JOIN CarParts cp ON c.id = cp.car_id.id LEFT JOIN Employees" +
-            " e ON cp.installed_by.id = e.id LEFT JOIN User u ON u.employees_id.id = e.id LEFT JOIN CarModel cm ON cm" +
-            ".id = c.model_id.id WHERE ";
+    public static final String QUERY = " FROM Cars c LEFT JOIN CarParts cp ON c.id = cp.car_id.id WHERE 1 = 1 "
+            + "AND cp.installed_by.user_id.username = COALESCE(:username, cp.installed_by.user_id.username)";
 }

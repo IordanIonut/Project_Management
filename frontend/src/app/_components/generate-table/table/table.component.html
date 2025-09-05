@@ -23,7 +23,7 @@
               (selectChange)="onSelectChange($event)"
             ></app-input>
           </div>
-          <div>
+          <!-- <div>
             <button
               mat-raised-button
               [color]="'primary'"
@@ -33,11 +33,11 @@
               <mat-icon>search</mat-icon>
               Search
             </button>
-          </div>
+          </div> -->
         </div>
       </th>
 
-      <td mat-cell *matCellDef="let row">
+      <td mat-cell *matCellDef="let row" class="flex-space-between">
         <ng-container *ngIf="col.type !== 'button'">
           <span class="hidden-for-sort">{{
             getNestedValue(row, col.key)

@@ -1,5 +1,5 @@
 import { Component, EventEmitter, Input, input, Output } from '@angular/core';
-import { Card } from '../../_model/_common/card';
+import { Card } from './card';
 import { CommonModule } from '@angular/common';
 import { MatIconModule } from '@angular/material/icon';
 

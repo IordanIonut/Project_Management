@@ -21,6 +21,7 @@ export class InputComponent {
   @Input() config!: GenInput;
   @Input() formGroup!: FormGroup;
   @Input() isTable: boolean = false;
+  @Input() isPage: boolean = false;
   @Output() selectChange = new EventEmitter<any>();
   constructor() {}
 
@@ -33,15 +34,20 @@ export class InputComponent {
     }
   }
 
-  getValueByPath(obj: any, path?: string): any {
-    if (!obj || !path) return obj;
+  getValuesByPaths(obj: any, paths?: string[]): string {
+    if (!obj || !paths || paths.length === 0) {
+      return typeof obj === 'string' ? obj : '';
+    }
 
-    return path
-      .split('.')
-      .reduce(
-        (acc, part) => (acc && acc[part] !== undefined ? acc[part] : ''),
-        obj
-      );
+    if (typeof obj === 'string') {
+      return obj;
+    }
+
+    return paths
+      .map((path) =>
+        path.split('.').reduce((acc, part) => acc?.[part] ?? '', obj)
+      )
+      .join(' - ');
   }
 
   onSelectChange(event: any): void {
@@ -53,6 +59,7 @@ export class InputComponent {
         const selectedIndex = selectEl.selectedIndex;
         const selectedOption = this.config.options?.[selectedIndex];
         console.log('select');
+        console.log(selectedOption);
         this.selectChange.emit(selectedOption);
       } else if (target.tagName === 'INPUT') {
         console.log('input');

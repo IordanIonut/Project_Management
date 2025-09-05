@@ -8,10 +8,8 @@ import {
 } from '@angular/core';
 import { CardComponent } from '../card/card.component';
 import { CommonModule } from '@angular/common';
-import { NamePageComponent } from '../name-page/name-page.component';
 import { MatCardModule } from '@angular/material/card';
 import { TableComponent } from './table/table.component';
-import { SpinnerComponent } from '../../_service/_spinner/spinner/spinner.component';
 import { JwtService } from '../../_service/_http/jwt.service';
 import { RolesLogicallyService } from '../../_shared/roles-logically.service';
 import { ProcessLogService } from '../../_service/_model/process-log.service';
@@ -24,13 +22,10 @@ import { MatPaginator } from '@angular/material/paginator';
 import { MatSort } from '@angular/material/sort';
 import { isProcessLog, ProcessLog } from '../../_model/_interface/process-log';
 import { Cars, isCars } from '../../_model/_interface/car';
-import {
-  isQualityCheck,
-  QualityChecks,
-} from '../../_model/_interface/quality-checks';
-import { CarsParts, isCarsParts } from '../../_model/_interface/cars-parts';
+import { isQualityCheck } from '../../_model/_interface/quality-checks';
+import { isCarsParts } from '../../_model/_interface/cars-parts';
 import { FormBuilder, FormGroup } from '@angular/forms';
-import { Card } from '../../_model/_common/card';
+import { Card } from '../card/card';
 import { ICONS } from '../../_shared/icons';
 import { SortPage } from '../../_model/_common/sort-page';
 import { ChangePage } from '../../_model/_common/change-page';
@@ -52,19 +47,16 @@ import { CarsStatus } from '../../_model/_enum/cars-status';
 import { PartCategory } from '../../_model/_enum/part-category';
 import { PartProductionService } from '../../_service/_model/part-production.service';
 import { ActivatedRoute, Router } from '@angular/router';
-import {
-  isPartProduction,
-  PartProduction,
-} from '../../_model/_interface/part-production';
+import { isPartProduction } from '../../_model/_interface/part-production';
 import { PartProductionFiltersDTO } from '../../_model/_dto/part_production-filter-dto';
 import { Urls } from '../../_shared/urls';
 import { MachineFiltersDTO } from '../../_model/_dto/machine-filters-dto';
 import { UserRole } from '../../_model/_enum/user-role';
-import { isMachine, Machines } from '../../_model/_interface/machine';
-import { User } from '../../_model/_interface/user';
-import { UserAllFiltersDTO } from '../../_model/_dto/user-all-filters-dto';
 import { MachineAllFiltersDTO } from '../../_model/_dto/machine-all-filter.dto';
-import { GenerateType } from './generete-type';
+import { GenerateType } from './generate-type';
+import { UserAllFiltersDTO } from '../../_model/_dto/user-all-filters-dto';
+import { CarModelFilterDTO } from '../../_model/_dto/car-model-filter-dto';
+import { CarsModelService } from '../../_service/_model/car-model.service';
 
 @Component({
   selector: 'app-generate-table',
@@ -94,6 +86,7 @@ export class GenerateTableComponent {
   @Input() keys!: GenerateTableKeys[];
   @Input() type: boolean = true;
   @Input() isHidden: boolean = false;
+  @Input() isHiddenCards: boolean = false;
 
   @Output() eventRow: EventEmitter<GenerateType> =
     new EventEmitter<GenerateType>();
@@ -161,12 +154,136 @@ export class GenerateTableComponent {
       icon: ICONS.MACHINE,
       color: 'red',
     },
+    [GenerateTableKeys.CAR_ALL]: {
+      name: GenerateTableKeys.CAR_ALL,
+      count: 0,
+      icon: ICONS.CAR,
+      color: 'green',
+    },
+    [GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME]: {
+      name: GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME,
+      count: 0,
+      icon: ICONS.PROCESS,
+      color: 'yellow',
+    },
+    [GenerateTableKeys.CARS_MODEL_ALL]: {
+      name: GenerateTableKeys.CARS_MODEL_ALL,
+      count: 0,
+      icon: ICONS.CAR_MODEL,
+      color: 'blue',
+    },
   };
 
   columnsSettings: {
     [key: string]: TableColumn[];
   } = {
     [GenerateTableKeys.PROCESS_LOG]: [
+      {
+        key: 'status',
+        code: 'p.status',
+        label: 'Status',
+        type: 'text',
+        config: {
+          type: 'select',
+          placeholder: 'Status',
+          formControlName: 'status',
+          options: ['NONE', ...Object.keys(ProcessLogStatus)],
+          labelKey: null,
+          valueKey: null,
+        },
+      },
+      {
+        key: 'process_id.name',
+        code: 'p.process_id.name',
+        label: 'Process',
+        type: 'link',
+        link: Urls.PROCESS_ID,
+        config: {
+          type: 'text',
+          placeholder: 'Process',
+          formControlName: 'process_id_name',
+        },
+      },
+      {
+        key: 'machine_id.name',
+        code: 'p.machine_id.name',
+        label: 'Machine Name',
+        type: 'link',
+        link: Urls.MACHINE_NAME,
+        config: {
+          type: 'text',
+          placeholder: 'Machine Name',
+          formControlName: 'machine_id_name',
+        },
+      },
+      {
+        key: 'start_time',
+        code: 'p.start_time',
+        label: 'Start Date',
+        pipe: 'date',
+        isActive: false,
+        config: {
+          type: 'date',
+          placeholder: 'Start Date',
+          formControlName: 'start_time',
+        },
+      },
+      {
+        key: 'end_time',
+        code: 'p.end_time',
+        label: 'End Date',
+        pipe: 'date',
+        isActive: true,
+        config: {
+          type: 'date',
+          placeholder: 'End Date',
+          formControlName: 'end_time',
+        },
+      },
+      {
+        key: 'view',
+        code: 'view',
+        label: 'View',
+        type: 'button',
+        activeFilters: true,
+        buttons: [
+          {
+            icon: ICONS.PIE,
+            buttonColor: 'primary',
+            onClick: (row: ProcessLog) => {
+              this._dialogService.openDialogViewChart(
+                row,
+                ViewType.PROCESS_LOG,
+                'Process Log By Machine'
+              );
+            },
+          },
+          {
+            icon: ICONS.LINE,
+            buttonColor: 'primary',
+            onClick: (row: ProcessLog) => {
+              this._dialogService.openDialogViewLine(
+                row,
+                ViewType.PROCESS_LOG,
+                'Process Log By Machine'
+              );
+            },
+          },
+          {
+            icon: ICONS.POLAR,
+            buttonColor: 'primary',
+            onClick: (row: ProcessLog) => {
+              this._dialogService.openDialogViewPolar(
+                row,
+                ViewType.PROCESS_LOG,
+                'Process Log By Machine'
+              );
+            },
+          },
+        ],
+      },
+    ],
+    [GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME]: [
       {
         key: 'status',
         code: 'p.status',
@@ -340,11 +457,33 @@ export class GenerateTableComponent {
           {
             icon: ICONS.PIE,
             buttonColor: 'primary',
-            onClick: (row: ProcessLog) => {
+            onClick: (row: Cars) => {
               this._dialogService.openDialogViewChart(
                 row,
                 ViewType.CARS,
-                'Cars Count'
+                'Cars Model Count'
+              );
+            },
+          },
+          {
+            icon: ICONS.LINE,
+            buttonColor: 'primary',
+            onClick: (row: Cars) => {
+              this._dialogService.openDialogViewLine(
+                row,
+                ViewType.CARS,
+                'Cars Model Count'
+              );
+            },
+          },
+          {
+            icon: ICONS.POLAR,
+            buttonColor: 'primary',
+            onClick: (row: Cars) => {
+              this._dialogService.openDialogViewPolar(
+                row,
+                ViewType.CARS,
+                'Cars Model Count'
               );
             },
           },
@@ -863,6 +1002,142 @@ export class GenerateTableComponent {
         },
       },
     ],
+    [GenerateTableKeys.CAR_ALL]: [
+      {
+        key: 'model_id.name',
+        code: 'c.model_id.name',
+        label: 'Name',
+        type: 'link',
+        link: Urls.CARS_NAME,
+        config: {
+          type: 'text',
+          placeholder: 'Name',
+          formControlName: 'model_id_name',
+        },
+      },
+      {
+        key: 'model_id.generation',
+        code: 'c.model_id.generation',
+        label: 'Generation',
+        type: 'text',
+        config: {
+          type: 'text',
+          placeholder: 'Generation',
+          formControlName: 'model_id_generation',
+        },
+      },
+      {
+        key: 'vin',
+        code: 'c.vin',
+        label: 'VIN',
+        type: 'link',
+        link: Urls.CARS_VIN,
+        config: {
+          type: 'text',
+          placeholder: 'VIN',
+          formControlName: 'vin',
+        },
+      },
+      {
+        key: 'status',
+        code: 'c.status',
+        label: 'Status',
+        type: 'text',
+        config: {
+          type: 'select',
+          placeholder: 'Status',
+          formControlName: 'status',
+          options: ['NONE', ...Object.keys(CarsStatus)],
+        },
+      },
+      {
+        key: 'model_id.release_year',
+        code: 'c.model_id.release_year',
+        label: 'Release Year',
+        type: 'text',
+        config: {
+          type: 'number',
+          placeholder: 'Release Year',
+          formControlName: 'model_id_release_year',
+        },
+      },
+      {
+        key: 'view',
+        code: 'view',
+        label: 'View',
+        type: 'button',
+        buttons: [
+          {
+            icon: ICONS.PIE,
+            buttonColor: 'primary',
+            onClick: (row: Cars) => {
+              this._dialogService.openDialogViewChart(
+                row,
+                ViewType.CARS,
+                'Cars Model Count'
+              );
+            },
+          },
+          {
+            icon: ICONS.LINE,
+            buttonColor: 'primary',
+            onClick: (row: Cars) => {
+              this._dialogService.openDialogViewLine(
+                row,
+                ViewType.CARS,
+                'Cars Model Count'
+              );
+            },
+          },
+          {
+            icon: ICONS.POLAR,
+            buttonColor: 'primary',
+            onClick: (row: Cars) => {
+              this._dialogService.openDialogViewPolar(
+                row,
+                ViewType.CARS,
+                'Cars Model Count'
+              );
+            },
+          },
+        ],
+      },
+    ],
+    [GenerateTableKeys.CARS_MODEL_ALL]: [
+      {
+        key: 'name',
+        code: 'cm.name',
+        label: 'Name',
+        type: 'text',
+        config: {
+          type: 'text',
+          placeholder: 'Name',
+          formControlName: 'name',
+        },
+      },
+      {
+        key: 'generation',
+        code: 'cm.generation',
+        label: 'Generation',
+        type: 'text',
+        config: {
+          type: 'number',
+          placeholder: 'Generation',
+          formControlName: 'generation',
+        },
+      },
+      {
+        key: 'release_year',
+        code: 'cm.release_year',
+        label: 'Release Year',
+        type: 'text',
+        config: {
+          type: 'number',
+          formControlName: 'release_year',
+          placeholder: 'Release Year',
+        },
+      },
+    ],
   };
 
   cardSettings: {
@@ -936,6 +1211,30 @@ export class GenerateTableComponent {
       },
       changePage: { pageIndex: 0, pageSize: Environment.pageSize },
     },
+    [GenerateTableKeys.CAR_ALL]: {
+      sortPage: {
+        column: this.columnsSettings[GenerateTableKeys.CAR_ALL][0].key,
+        direction: 'asc',
+      },
+      changePage: { pageIndex: 0, pageSize: Environment.pageSize },
+    },
+    [GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME]: {
+      sortPage: {
+        column:
+          this.columnsSettings[
+            GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+          ][0].key,
+        direction: 'asc',
+      },
+      changePage: { pageIndex: 0, pageSize: Environment.pageSize },
+    },
+    [GenerateTableKeys.CARS_MODEL_ALL]: {
+      sortPage: {
+        column: this.columnsSettings[GenerateTableKeys.CARS_MODEL_ALL][0].key,
+        direction: 'asc',
+      },
+      changePage: { pageIndex: 0, pageSize: Environment.pageSize },
+    },
   };
 
   constructor(
@@ -949,6 +1248,7 @@ export class GenerateTableComponent {
     private _partProductionService: PartProductionService,
     private _machineService: MachineService,
     private _dialogService: DialogService,
+    private _carModelService: CarsModelService,
     private route: ActivatedRoute,
     private _fb: FormBuilder,
     private _router: Router
@@ -963,14 +1263,14 @@ export class GenerateTableComponent {
 
   onInformation() {
     this._userService
-      .countInformation(
-        this._JwtService.getUserInfo()?.name!,
-        this.route.snapshot.paramMap.get('key')!
-      )
+      .countInformation(this.getUsername!, this.getUsernameDifferentParams!)
       .subscribe({
         next: (response: UserInformationDTO) => {
           this.cards[GenerateTableKeys.PROCESS_LOG].count =
             response.countProcessLog;
+          this.cards[
+            GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+          ].count = response.countProcessLog;
           this.cards[GenerateTableKeys.CARS].count = response.countCars;
           this.cards[GenerateTableKeys.QUALITY_CHECKS].count =
             response.countQualityChecks;
@@ -985,6 +1285,9 @@ export class GenerateTableComponent {
           this.cards[GenerateTableKeys.USER_ALL].count = response.countAllUsers;
           this.cards[GenerateTableKeys.MACHINE_ALL].count =
             response.countAllMachine;
+          this.cards[GenerateTableKeys.CAR_ALL].count = response.countAllCars;
+          this.cards[GenerateTableKeys.CARS_MODEL_ALL].count =
+            response.countAllCarModels;
         },
         error: (error: Error) => {
           console.error(error);
@@ -1011,10 +1314,12 @@ export class GenerateTableComponent {
       .filter((label) => label && label !== 'View');
 
     switch (this.card.name) {
-      case GenerateTableKeys.PROCESS_LOG: {
+      case GenerateTableKeys.PROCESS_LOG:
+      case GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME: {
         this._processLogService
-          .postExcelByUserNameAndProcessLogFilters(
-            this._JwtService.getUserInfo()?.name!,
+          .postExcelByUserNameAndProcessLogIdAndProcessLogFilters(
+            this.getUsername!,
+            this.getUsernameDifferentParams!,
             columns.join(', '),
             this.onGiveFilters()! as ProcessLogsFilterDTO
           )
@@ -1032,10 +1337,11 @@ export class GenerateTableComponent {
           });
         break;
       }
-      case GenerateTableKeys.CARS: {
+      case GenerateTableKeys.CARS:
+      case GenerateTableKeys.CAR_ALL: {
         this._carsService
           .postExcelByUserNameAncCarsFilter(
-            this._JwtService.getUserInfo()?.name!,
+            this.getUsername!,
             columns.join(', '),
             this.onGiveFilters()! as CarsFiltersDTO
           )
@@ -1056,7 +1362,7 @@ export class GenerateTableComponent {
       case GenerateTableKeys.QUALITY_CHECKS: {
         this._qualityChecksService
           .postExcelByUserNameAndQualityChecksFilters(
-            this._JwtService.getUserInfo()?.name!,
+            this.getUsername!,
             columns.join(', '),
             this.onGiveFilters()! as QualityChecksFiltersDTO
           )
@@ -1077,7 +1383,7 @@ export class GenerateTableComponent {
       case GenerateTableKeys.ASSIGNED_PARTS: {
         this._carsPartsService
           .getExcelByUserNameAndCarsPartsFilters(
-            this._JwtService.getUserInfo()?.name!,
+            this.getUsername!,
             columns.join(', '),
             this.onGiveFilters()! as CarsPartsFilterDTO
           )
@@ -1095,7 +1401,7 @@ export class GenerateTableComponent {
       case GenerateTableKeys.MACHINE_USED: {
         this._processLogService
           .postExcelByUserNameAndMachineUsedFilters(
-            this._JwtService.getUserInfo()?.name!,
+            this.getUsername!,
             columns.join(', '),
             this.onGiveFilters()! as MachineUsedFiltersDTO
           )
@@ -1195,6 +1501,26 @@ export class GenerateTableComponent {
           });
         break;
       }
+      case GenerateTableKeys.CARS_MODEL_ALL: {
+        this._carModelService
+          .excelCarModelByCarModelFilter(
+            columns.join(', '),
+            this.onGiveFilters()! as CarModelFilterDTO
+          )
+          .subscribe({
+            next: (response) => {
+              this._excelService.exportToExcel(
+                tables,
+                response,
+                'Car_Models_' + new Date().toLocaleDateString()
+              );
+            },
+            error: (error) => {
+              console.error(error);
+            },
+          });
+        break;
+      }
       default: {
         console.error('not find onExport() ' + this.card.name);
         break;
@@ -1203,7 +1529,7 @@ export class GenerateTableComponent {
   }
 
   onCardClick(card: Card) {
-    const userName = this._JwtService.getUserInfo()?.name!;
+    const userName = this.getUsername!;
     const settings = this.cardSettings[card.name];
     if (!settings) {
       return;
@@ -1212,10 +1538,12 @@ export class GenerateTableComponent {
     this.onColumns();
 
     switch (card.name) {
-      case GenerateTableKeys.PROCESS_LOG: {
+      case GenerateTableKeys.PROCESS_LOG:
+      case GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME: {
         this._processLogService
-          .postDataByUserNameAndProcessLogFilters(
+          .getDataByUserNameAndProcessLogIdAndProcessLogFilters(
             userName,
+            this.getUsernameDifferentParams!,
             settings.changePage,
             settings.sortPage,
             this.onGiveFilters()! as ProcessLogsFilterDTO
@@ -1291,7 +1619,7 @@ export class GenerateTableComponent {
       case GenerateTableKeys.MACHINE_USED: {
         this._processLogService
           .postDataByUsernameAndMachineUsedFilters(
-            this._JwtService.getUserInfo()?.name!,
+            this.getUsername!,
             settings.changePage,
             settings.sortPage,
             this.onGiveFilters()! as MachineUsedFiltersDTO
@@ -1384,6 +1712,45 @@ export class GenerateTableComponent {
         this.eventCard.emit(card);
         break;
       }
+      case GenerateTableKeys.CAR_ALL: {
+        this._carsService
+          .postDataByUserNameAndCarsFilters(
+            null,
+            settings.changePage,
+            settings.sortPage,
+            this.onGiveFilters() as CarsFiltersDTO
+          )
+          .subscribe({
+            next: (response) => {
+              this.data = [...response.items];
+              this.count = response.count;
+            },
+            error: (error) => {
+              console.error(error);
+            },
+          });
+        this.eventCard.emit(card);
+        break;
+      }
+      case GenerateTableKeys.CARS_MODEL_ALL: {
+        this._carModelService
+          .postCarModelByCarModelFilter(
+            settings.changePage,
+            settings.sortPage,
+            this.onGiveFilters() as CarModelFilterDTO
+          )
+          .subscribe({
+            next: (response) => {
+              this.data = [...response.items];
+              this.count = response.count;
+            },
+            error: (error) => {
+              console.error(error);
+            },
+          });
+        this.eventCard.emit(card);
+        break;
+      }
       default: {
         console.error('not find onCardClick() ' + this.card.name);
         break;
@@ -1441,8 +1808,10 @@ export class GenerateTableComponent {
         break;
       }
       case GenerateTableKeys.MACHINE_USED: {
-        if (isMachine(event)) {
-          this._router.navigateByUrl('dashboard/machine/' + event.name);
+        if (isProcessLog(event)) {
+          this._router.navigateByUrl(
+            'dashboard/machine/' + event.machine_id.name
+          );
         }
         break;
       }
@@ -1468,11 +1837,10 @@ export class GenerateTableComponent {
         }
         break;
       }
-      case GenerateTableKeys.USER_ALL: {
-        this.eventRow.emit(event);
-        break;
-      }
-      case GenerateTableKeys.MACHINE_ALL: {
+      case GenerateTableKeys.USER_ALL:
+      case GenerateTableKeys.MACHINE_ALL:
+      case GenerateTableKeys.CAR_ALL:
+      case GenerateTableKeys.CARS_MODEL_ALL: {
         this.eventRow.emit(event);
         break;
       }
@@ -1492,9 +1860,10 @@ export class GenerateTableComponent {
     | MachineFiltersDTO
     | UserAllFiltersDTO
     | MachineAllFiltersDTO
+    | CarModelFilterDTO
     | null {
     switch (this.card.name) {
-      case GenerateTableKeys.PROCESS_LOG: {
+      case GenerateTableKeys.PROCESS_LOG:
         return {
           status:
             this.form[GenerateTableKeys.PROCESS_LOG].value.status === '' ||
@@ -1519,6 +1888,53 @@ export class GenerateTableComponent {
             this.form[GenerateTableKeys.PROCESS_LOG].value.end_time === ''
               ? null
               : this.form[GenerateTableKeys.PROCESS_LOG].value.end_time,
+        };
+      case GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME: {
+        //the same like PROCESS_LOG
+        return {
+          status:
+            this.form[
+              GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+            ].value.status === '' ||
+            this.form[
+              GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+            ].value.status === 'NONE'
+              ? null
+              : this.form[
+                  GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+                ].value.status,
+          process_id_name:
+            this.form[
+              GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+            ].value.process_id_name === ''
+              ? null
+              : this.form[
+                  GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+                ].value.process_id_name,
+          machine_id_name:
+            this.form[
+              GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+            ].value.machine_id_name === ''
+              ? null
+              : this.form[
+                  GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+                ].value.machine_id_name,
+          start_date:
+            this.form[
+              GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+            ].value.start_time === ''
+              ? null
+              : this.form[
+                  GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+                ].value.start_time,
+          end_date:
+            this.form[
+              GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+            ].value.end_time === ''
+              ? null
+              : this.form[
+                  GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME
+                ].value.end_time,
         };
       }
       case GenerateTableKeys.CARS: {
@@ -1789,6 +2205,55 @@ export class GenerateTableComponent {
               : this.form[GenerateTableKeys.MACHINE_ALL].value.name,
         };
       }
+      case GenerateTableKeys.CAR_ALL: {
+        //the same like PROCESS_LOG
+        return {
+          model_id_release_year:
+            this.form[GenerateTableKeys.CAR_ALL].value.model_id_release_year ===
+            ''
+              ? null
+              : this.form[GenerateTableKeys.CAR_ALL].value
+                  .model_id_release_year,
+          status:
+            this.form[GenerateTableKeys.CAR_ALL].value.status === '' ||
+            this.form[GenerateTableKeys.CAR_ALL].value.status === 'NONE'
+              ? null
+              : this.form[GenerateTableKeys.CAR_ALL].value.status,
+          vin:
+            this.form[GenerateTableKeys.CAR_ALL].value.vin === ''
+              ? null
+              : this.form[GenerateTableKeys.CAR_ALL].value.vin,
+          model_id_generation:
+            this.form[GenerateTableKeys.CAR_ALL].value.model_id_generation ===
+            ''
+              ? null
+              : this.form[GenerateTableKeys.CAR_ALL].value.model_id_generation,
+          model_id_name:
+            this.form[GenerateTableKeys.CAR_ALL].value.model_id_name === ''
+              ? null
+              : this.form[GenerateTableKeys.CAR_ALL].value.model_id_name,
+        };
+      }
+      case GenerateTableKeys.CARS_MODEL_ALL: {
+        return {
+          name:
+            this.form[GenerateTableKeys.CARS_MODEL_ALL].value.name === ''
+              ? null
+              : this.form[GenerateTableKeys.CARS_MODEL_ALL].value.name,
+          generation:
+            this.form[GenerateTableKeys.CARS_MODEL_ALL].value.generation === ''
+              ? null
+              : this.form[GenerateTableKeys.CARS_MODEL_ALL].value.generation,
+          release_year:
+            this.form[GenerateTableKeys.CARS_MODEL_ALL].value.release_year ===
+            ''
+              ? null
+              : this.form[GenerateTableKeys.CARS_MODEL_ALL].value.release_year,
+        };
+      }
+      default: {
+        console.error('not found onGiveFilters(): ', this.card.name);
+      }
     }
     return null;
   }
@@ -1862,6 +2327,28 @@ export class GenerateTableComponent {
         type: [null],
         name: [null],
       }),
+      [GenerateTableKeys.CAR_ALL]: this._fb.group({
+        //the same like [GenerateTableKeys.CARS]
+        model_id_release_year: [null],
+        status: ['NONE'],
+        vin: [null],
+        model_id_generation: [null],
+        model_id_name: [null],
+      }),
+      [GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME]:
+        //the same like [GenerateTableKeys.PROCESS_LOG]
+        this._fb.group({
+          status: ['NONE'],
+          process_id_name: [null],
+          machine_id_name: [null],
+          start_time: [null],
+          end_time: [null],
+        }),
+      [GenerateTableKeys.CARS_MODEL_ALL]: this._fb.group({
+        name: [null],
+        generation: [null],
+        release_year: [null],
+      }),
     };
   }
 
@@ -1869,5 +2356,26 @@ export class GenerateTableComponent {
     return Object.values(this.cards).filter((card) =>
       this.keys.includes(card.name as GenerateTableKeys)
     );
+  }
+
+  private get getUsername(): string | null {
+    if (!window.location.pathname.split('/').includes('create')) {
+      const parts = window.location.pathname.split('/');
+      const userIndex = parts.indexOf('user');
+
+      if (userIndex !== -1 && parts.length > userIndex + 1) {
+        return parts[userIndex + 1];
+      }
+
+      return this._JwtService.getUserInfo()?.name!;
+    }
+    return null;
+  }
+
+  private get getUsernameDifferentParams(): string | null {
+    const key = this.route.snapshot.paramMap.get('key');
+    const username = this.getUsername;
+
+    return key !== null && username !== key ? key : null;
   }
 }

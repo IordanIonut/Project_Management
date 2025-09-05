@@ -1,4 +1,3 @@
-import { FormGroup } from '@angular/forms';
 import { GenInput } from '../../_components/input/input';
 
 export interface TableColumn {

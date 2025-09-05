@@ -23,8 +23,9 @@ export class ProcessLogService {
 
   constructor(private _http: HttpClient) {}
 
-  postDataByUserNameAndProcessLogFilters(
-    name: string,
+  getDataByUserNameAndProcessLogIdAndProcessLogFilters(
+    username: string,
+    process_log_id: string,
     changePage: ChangePage,
     sortPage: SortPage,
     processLogsFilter: ProcessLogsFilterDTO
@@ -35,21 +36,27 @@ export class ProcessLogService {
       processLogsFilterDTO: processLogsFilter,
     };
     const params = new URLSearchParams();
-    params.append('name', name);
-
+    params.append('username', username);
+    if (process_log_id !== null) {
+      params.append('process_log_id', process_log_id);
+    }
     return this._http.post<GroupResult<ProcessLog>>(
       `${this.authUrl}/find/by-process-log?${params.toString()}`,
       requestBody
     );
   }
 
-  postExcelByUserNameAndProcessLogFilters(
-    name: string,
+  postExcelByUserNameAndProcessLogIdAndProcessLogFilters(
+    username: string,
+    process_log_id: string,
     columns: string,
     processLogsFilter: ProcessLogsFilterDTO
   ): Observable<any[]> {
     const params = new URLSearchParams();
-    params.append('name', name);
+    if (process_log_id !== null) {
+      params.append('process_log_id', process_log_id);
+    }
+    params.append('username', username);
     params.append('columns', columns);
     const requestBody = {
       processLogsFilterDTO: processLogsFilter,

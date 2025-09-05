@@ -1,26 +1,30 @@
-<div class="flex flex-row justify-between items-center gap-4" *ngIf="type">
-  <app-card
-    class="w-4/12"
-    *ngFor="let item of visibleCards()"
-    [card]="item"
-    [cardSelected]="card"
-    (cardClicked)="onCardClick(item)"
-  ></app-card>
-</div>
-<div class="divide"></div>
-<div *ngIf="!isHidden">
-  <app-table
-    [data]="data"
-    [count]="count"
-    [pageIndex]="onGetPageIndex()"
-    [columns]="onColumns()"
-    [isTable]="true"
-    [form]="onForms()"
-    (pageChanged)="onPageChanged($event)"
-    (sortChanged)="onSortChanged($event)"
-    [enableDblClickForRow]="true"
-    (onExport)="onExport()"
-    (onActivateFilters)="onActivateFilters()"
-    (onDblClickRow)="onDblClickRow($event)"
-  ></app-table>
+<div class="flex flex-col gap-2">
+  <div
+    class="flex flex-row justify-between items-center"
+    *ngIf="type && !isHiddenCards"
+  >
+    <app-card
+      class="w-4/12"
+      *ngFor="let item of visibleCards()"
+      [card]="item"
+      [cardSelected]="card"
+      (cardClicked)="onCardClick(item)"
+    ></app-card>
+  </div>
+  <div *ngIf="!isHidden">
+    <app-table
+      [data]="data"
+      [count]="count"
+      [pageIndex]="onGetPageIndex()"
+      [columns]="onColumns()"
+      [isTable]="true"
+      [form]="onForms()"
+      (pageChanged)="onPageChanged($event)"
+      (sortChanged)="onSortChanged($event)"
+      [enableDblClickForRow]="true"
+      (onExport)="onExport()"
+      (onActivateFilters)="onActivateFilters()"
+      (onDblClickRow)="onDblClickRow($event)"
+    ></app-table>
+  </div>
 </div>

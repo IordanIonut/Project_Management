@@ -31,28 +31,29 @@ public class ProcessLogService {
     @PersistenceContext
     private EntityManager entityManager;
 
-    public void saveAll(List<ProcessLog> processLogs){
+    public void saveAll(List<ProcessLog> processLogs) {
         this.processLogRepository.saveAll(processLogs);
     }
 
-    public List<ProcessLog> findAll(){
+    public List<ProcessLog> findAll() {
         return this.processLogRepository.findAll();
     }
 
-    @Cacheable(cacheNames = CACHEABLE + "findByUserNameAndProcessLogFilters", key = "#name + @tableRequestCacheKeyHelper.buildProcessLogKey(#tableRequest) + @processLogsCacheKeyHelper.buildProcessLogKey(#processLogsFilterDTO)")
-    public List<ProcessLog> findByUserNameAndProcessLogFilters(final String name, final TableRequest tableRequest, final ProcessLogsFilterDTO processLogsFilterDTO) {
+    @Cacheable(cacheNames = CACHEABLE + "getDataByUserNameAndProcessLogIdAndProcessLogFilters", key = "#process_log_id +'_'+ #username + @tableRequestCacheKeyHelper.buildProcessLogKey(#tableRequest) + @processLogsCacheKeyHelper.buildProcessLogKey(#processLogsFilterDTO)")
+    public List<ProcessLog> getDataByUserNameAndProcessLogIdAndProcessLogFilters(final String process_log_id, final String username, final TableRequest tableRequest, final ProcessLogsFilterDTO processLogsFilterDTO) {
         PageRequest pageRequest = BackendApplication.generateTablePage(tableRequest);
-        return this.processLogRepository.findByUserNameAndProcessLogFilters(name, pageRequest, processLogsFilterDTO.getStatus(), processLogsFilterDTO.getProcess_id_name(), processLogsFilterDTO.getMachine_id_name(), processLogsFilterDTO.getStart_date(), processLogsFilterDTO.getEnd_date());
+        return this.processLogRepository.findByUserNameAndProcessLogIdAndProcessLogFilters(process_log_id, username, pageRequest, processLogsFilterDTO.getStatus(), processLogsFilterDTO.getProcess_id_name(), processLogsFilterDTO.getMachine_id_name(), processLogsFilterDTO.getStart_date(), processLogsFilterDTO.getEnd_date());
     }
 
-    @Cacheable(cacheNames = CACHEABLE + "countByUserNameAndProcessLogFilters", key = "#name + @processLogsCacheKeyHelper.buildProcessLogKey(#processLogsFilterDTO)")
-    public Long countByUserNameAndProcessLogFilters(final String name, final ProcessLogsFilterDTO processLogsFilterDTO) {
-        return this.processLogRepository.countByUserNameAndProcessLogFilters(name, processLogsFilterDTO.getStatus(), processLogsFilterDTO.getProcess_id_name(), processLogsFilterDTO.getMachine_id_name(), processLogsFilterDTO.getStart_date(), processLogsFilterDTO.getEnd_date());
+    @Cacheable(cacheNames = CACHEABLE + "countByUserNameAndProcessLogIdAndProcessLogFilters", key = "#process_log_id +'_' + #username + @processLogsCacheKeyHelper.buildProcessLogKey(#processLogsFilterDTO)")
+    public Long countByUserNameAndProcessLogIdAndProcessLogFilters(final String process_log_id, final String username, final ProcessLogsFilterDTO processLogsFilterDTO) {
+        return this.processLogRepository.countByUserNameAndProcessLogIdAndProcessLogFilters(process_log_id, username, processLogsFilterDTO.getStatus(), processLogsFilterDTO.getProcess_id_name(), processLogsFilterDTO.getMachine_id_name(), processLogsFilterDTO.getStart_date(), processLogsFilterDTO.getEnd_date());
     }
 
-    @Cacheable(cacheNames = CACHEABLE + "postExcelByUserNameAndProcessLogFilters", key = "#username +'_' +#columns + @processLogsCacheKeyHelper.buildProcessLogKey(#processLogsFilterDTO)")
-    public List<Object[]> postExcelByUserNameAndProcessLogFilters(final String username, final String columns, final ProcessLogsFilterDTO processLogsFilterDTO) {
-        TypedQuery<Object[]> query = this.entityManager.createQuery("SELECT " + columns + ProcessLog.QUERY_PROCESS_LOG_FILTERS + " u.username = :username " + ProcessLogsFilterDTO.QUERY, Object[].class);
+    @Cacheable(cacheNames = CACHEABLE + "postExcelByUserNameAndProcessLogIdAndProcessLogFilters", key = "#process_log_id +'_'+ #username +'_' +#columns + @processLogsCacheKeyHelper.buildProcessLogKey(#processLogsFilterDTO)")
+    public List<Object[]> postExcelByUserNameAndProcessLogIdAndProcessLogFilters(final String process_log_id, final String username, final String columns, final ProcessLogsFilterDTO processLogsFilterDTO) {
+        TypedQuery<Object[]> query = this.entityManager.createQuery("SELECT " + columns + ProcessLog.QUERY_BY_USERNAME_OR_PROCESS_NAME + ProcessLogsFilterDTO.QUERY, Object[].class);
+        query.setParameter("process_log_id", process_log_id);
         query.setParameter("username", username);
         query.setParameter("status", processLogsFilterDTO.getStatus());
         query.setParameter("process_id_name", processLogsFilterDTO.getProcess_id_name());
@@ -72,7 +73,7 @@ public class ProcessLogService {
 
     @Cacheable(cacheNames = CACHEABLE + "countByUsernameAndMachineUsedFilters", key = "#username + @machineUsedCacheKeyHelper.buildMachineUsedKey(#machineUsedFiltersDTO)")
     public Long countByUsernameAndMachineUsedFilters(final String username, final MachineUsedFiltersDTO machineUsedFiltersDTO) {
-        return this.processLogRepository.countByUsernameAndMachineUsedFilters(username,machineUsedFiltersDTO.getMachine_id_name(),
+        return this.processLogRepository.countByUsernameAndMachineUsedFilters(username, machineUsedFiltersDTO.getMachine_id_name(),
                 machineUsedFiltersDTO.getMachine_id_status(), machineUsedFiltersDTO.getCar_id_model_id_name(), machineUsedFiltersDTO.getStatus(),
                 machineUsedFiltersDTO.getProcess_id_name(), machineUsedFiltersDTO.getEmployee_id_user_id_username());
     }
@@ -94,29 +95,29 @@ public class ProcessLogService {
     public List<ProcessLog> findByMachineNameOrIdAndMachineFilters(final String machine_name_or_id, final TableRequest tableRequest, final MachineFiltersDTO machineFiltersDTO) {
         PageRequest pageRequest = BackendApplication.generateTablePage(tableRequest);
         return this.processLogRepository.findByMachineNameOrIdAndMachineFilters(machine_name_or_id, pageRequest,
-				machineFiltersDTO.getEmployee_id_user_id_username(), machineFiltersDTO.getEmployee_id_user_id_role(), machineFiltersDTO.getProcess_id_name(),
-				machineFiltersDTO.getEmployee_id_department(), machineFiltersDTO.getStart_time(), machineFiltersDTO.getEnd_time(), machineFiltersDTO.getStatus());
+                machineFiltersDTO.getEmployee_id_user_id_username(), machineFiltersDTO.getEmployee_id_user_id_role(), machineFiltersDTO.getProcess_id_name(),
+                machineFiltersDTO.getEmployee_id_department(), machineFiltersDTO.getStart_time(), machineFiltersDTO.getEnd_time(), machineFiltersDTO.getStatus());
     }
 
     @Cacheable(cacheNames = CACHEABLE + "countByMachineNameOrIdAndMachineFilters", key = "#machine_name_or_id + @machineCacheKeyHelper.buildMachineKey(#machineFiltersDTO)")
     public Long countByMachineNameOrIdAndMachineFilters(final String machine_name_or_id, final MachineFiltersDTO machineFiltersDTO) {
-        return this.processLogRepository.countByMachineNameOrIdAndMachineFilters(machine_name_or_id,	machineFiltersDTO.getEmployee_id_user_id_username(), machineFiltersDTO.getEmployee_id_user_id_role(), machineFiltersDTO.getProcess_id_name(),
-				machineFiltersDTO.getEmployee_id_department(), machineFiltersDTO.getStart_time(), machineFiltersDTO.getEnd_time(), machineFiltersDTO.getStatus());
+        return this.processLogRepository.countByMachineNameOrIdAndMachineFilters(machine_name_or_id, machineFiltersDTO.getEmployee_id_user_id_username(), machineFiltersDTO.getEmployee_id_user_id_role(), machineFiltersDTO.getProcess_id_name(),
+                machineFiltersDTO.getEmployee_id_department(), machineFiltersDTO.getStart_time(), machineFiltersDTO.getEnd_time(), machineFiltersDTO.getStatus());
     }
 
     @Cacheable(cacheNames = CACHEABLE + "postExcelByMachineNameOrIdAndMachineFilters", key = "#machine_name_or_id + '_' + #columns + @machineCacheKeyHelper.buildMachineKey(#machineFiltersDTO)")
     public List<Object[]> postExcelByMachineNameOrIdAndMachineFilters(final String machine_name_or_id, final String columns, final MachineFiltersDTO machineFiltersDTO) {
         TypedQuery<Object[]> query = this.entityManager.createQuery("SELECT " + columns + ProcessLog.QUERY_MACHINE + MachineFiltersDTO.QUERY, Object[].class);
         query.setParameter("machine_name_or_id", machine_name_or_id);
-		query.setParameter("employee_id_user_id_username", machineFiltersDTO.getEmployee_id_user_id_username());
-		query.setParameter("employee_id_user_id_role", machineFiltersDTO.getEmployee_id_user_id_role());
-		query.setParameter("process_id_name", machineFiltersDTO.getProcess_id_name());
-		query.setParameter("employee_id_department", machineFiltersDTO.getEmployee_id_department());
-		query.setParameter("start_time", machineFiltersDTO.getStart_time());
-		query.setParameter("end_time", machineFiltersDTO.getEnd_time());
-		query.setParameter("status", machineFiltersDTO.getStatus());
+        query.setParameter("employee_id_user_id_username", machineFiltersDTO.getEmployee_id_user_id_username());
+        query.setParameter("employee_id_user_id_role", machineFiltersDTO.getEmployee_id_user_id_role());
+        query.setParameter("process_id_name", machineFiltersDTO.getProcess_id_name());
+        query.setParameter("employee_id_department", machineFiltersDTO.getEmployee_id_department());
+        query.setParameter("start_time", machineFiltersDTO.getStart_time());
+        query.setParameter("end_time", machineFiltersDTO.getEnd_time());
+        query.setParameter("status", machineFiltersDTO.getStatus());
 
-		return query.getResultList();
+        return query.getResultList();
     }
 
     @Cacheable(cacheNames = CACHEABLE + "findProcessByNameOrId", key = "#process_name_or_id")
@@ -130,8 +131,8 @@ public class ProcessLogService {
         return this.processLogRepository.updateProcessLogStatus(process_name_or_id, status);
     }
 
-    @Cacheable(cacheNames = CACHEABLE+"canAccessPage" , key = "#process_name_or_id +'_' + #username")
-    public Boolean canAccessPage(final String process_name_or_id, final String username){
+    @Cacheable(cacheNames = CACHEABLE + "canAccessPage", key = "#process_name_or_id +'_' + #username")
+    public Boolean canAccessPage(final String process_name_or_id, final String username) {
         return this.processLogRepository.canAccessPage(process_name_or_id, username) == 0;
     }
 }

@@ -11,4 +11,6 @@ export interface UserInformationDTO {
   //All
   countAllUsers: number;
   countAllMachine: number;
+  countAllCars: number;
+  countAllCarModels: number;
 }

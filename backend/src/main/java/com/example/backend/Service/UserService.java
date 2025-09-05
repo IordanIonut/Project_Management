@@ -45,6 +45,8 @@ public class UserService {
     @Autowired
     private MachinesService machinesService;
     @Autowired
+    private CarModelService carModelService;
+    @Autowired
     private PasswordEncoder passwordEncoder;
 
     @PersistenceContext
@@ -68,7 +70,15 @@ public class UserService {
 
     @Cacheable(cacheNames = CACHEABLE + "countInformation", key = "#name + '_' + #machine_name_or_id")
     public UserInformationDTO countInformation(final String name, final String machine_name_or_id) {
-        return new UserInformationDTO(this.processLogService.countByUserNameAndProcessLogFilters(name, new ProcessLogsFilterDTO()), this.carsService.countByUsernameAndCarsFilters(name, new CarsFiltersDTO()), this.qualityChecksService.countByUserName(name, new QualityChecksFiltersDTO()), this.carsPartsService.countByUserNameAndCarsPartsFilters(name, new CarsPartsFiltersDTO()), this.processLogService.countByUsernameAndMachineUsedFilters(name, new MachineUsedFiltersDTO()), this.partProductionService.countByMachineNameOrIdAndPartProductionFilter(machine_name_or_id, new PartProductionFiltersDTO()), this.processLogService.countByMachineNameOrIdAndMachineFilters(machine_name_or_id, new MachineFiltersDTO()), this.countAllByUserAllFilters(new UserAllFiltersDTO()), this.machinesService.countAllBy(new MachineAllFiltersDTO()));
+        return new UserInformationDTO(this.processLogService.countByUserNameAndProcessLogIdAndProcessLogFilters(machine_name_or_id,name, new ProcessLogsFilterDTO()),
+                this.carsService.countByUsernameAndCarsFilters(name, new CarsFiltersDTO()), this.qualityChecksService.countByUserName(name, new QualityChecksFiltersDTO()),
+                this.carsPartsService.countByUserNameAndCarsPartsFilters(name, new CarsPartsFiltersDTO()),
+                this.processLogService.countByUsernameAndMachineUsedFilters(name, new MachineUsedFiltersDTO()),
+                this.partProductionService.countByMachineNameOrIdAndPartProductionFilter(machine_name_or_id, new PartProductionFiltersDTO()),
+                this.processLogService.countByMachineNameOrIdAndMachineFilters(machine_name_or_id, new MachineFiltersDTO()),
+                this.countAllByUserAllFilters(new UserAllFiltersDTO()), this.machinesService.countAllBy(new MachineAllFiltersDTO()),
+                this.carsService.countByUsernameAndCarsFilters(machine_name_or_id, new CarsFiltersDTO()),
+                this.carModelService.countCarModelByCarModelFilter(new CarModelFilterDTO()));
     }
 
     @Cacheable(cacheNames = CACHEABLE + "findUserByUsernameOrId", key = "#user_username_or_id_or_email")

@@ -1,8 +1,8 @@
 <div
   [ngClass]="
-    isTable
-      ? ''
-      : 'flex flex-row items-center justify-self-center w-8/12 justify-between'
+    !isTable && !isPage
+      ? 'flex flex-row items-center justify-self-center w-8/12 justify-between'
+      : ''
   "
   [formGroup]="formGroup"
   *ngIf="config"
@@ -10,16 +10,16 @@
   <label
     *ngIf="config.label"
     class="block text-lg font-semibold text-gray-700 mb-2"
-    [ngClass]="{ 'flex items-center': config.icon && !isTable }"
+    [ngClass]="{ 'flex items-center': config.icon && !isTable && !isPage }"
   >
-    <mat-icon *ngIf="config.icon && !isTable" class="mr-2">{{
+    <mat-icon *ngIf="config.icon && !isTable && !isPage" class="mr-2">{{
       config.icon
     }}</mat-icon>
     {{ config.label }}
   </label>
   <div
     [ngClass]="{
-      'flex flex-col items-center not-table': !isTable,
+      'flex flex-col items-center not-table': !isTable && !isPage,
       'border-red-300':
         formGroup.get(config.formControlName)?.hasError('required') &&
         formGroup.get(config.formControlName)?.touched &&
@@ -30,7 +30,6 @@
         !isTable
     }"
   >
-    <!-- <mat-icon *ngIf="config.icon">{{ config.icon }}</mat-icon> -->
     <select
       *ngIf="config.type === 'select'; else textInput"
       [formControlName]="config.formControlName"
@@ -39,7 +38,7 @@
       (change)="onSelectChange($event)"
     >
       <option *ngFor="let option of config.options" [ngValue]="option">
-        {{ getValueByPath(option, config.labelKey!) }}
+        {{ getValuesByPaths(option, config.labelKey!) }}
       </option>
     </select>
     <ng-template #textInput>

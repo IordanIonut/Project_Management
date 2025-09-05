@@ -13,7 +13,7 @@ export interface GenInput {
     | 'select';
   placeholder: string;
   formControlName: string;
-  labelKey?: string | null;
-  valueKey?: string | null;
+  labelKey?: string[] | null;
+  valueKey?: string[] | null;
   options?: any[];
 }

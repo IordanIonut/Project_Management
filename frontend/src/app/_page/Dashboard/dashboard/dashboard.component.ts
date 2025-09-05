@@ -4,27 +4,26 @@ import { CardComponent } from '../../../_components/card/card.component';
 import { CommonModule } from '@angular/common';
 import { NamePage } from '../../../_components/name-page/name-page';
 import { NamePageComponent } from '../../../_components/name-page/name-page.component';
-import { JwtService } from '../../../_service/_http/jwt.service';
-import { RolesLogicallyService } from '../../../_shared/roles-logically.service';
 import { ICONS } from '../../../_shared/icons';
-import { GenerateTableKeys } from '../../../_components/generate-table/generate-table-key';
+import {
+  Dashboard_And_User_Page,
+  GenerateTableKeys,
+} from '../../../_components/generate-table/generate-table-key';
 import { GenerateTableComponent } from '../../../_components/generate-table/generate-table.component';
-import { ProcessLogService } from '../../../_service/_model/process-log.service';
 import { MatCardModule } from '@angular/material/card';
-import { DialogService } from '../../../_service/_dialog/dialog.service';
+import { CarsModelService } from '../../../_service/_model/car-model.service';
 
 @Component({
   selector: 'app-dashboard',
   standalone: true,
   imports: [
     HttpClientModule,
-    CardComponent,
     CommonModule,
     NamePageComponent,
     MatCardModule,
     GenerateTableComponent,
   ],
-  providers: [],
+  providers: [CarsModelService],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.scss',
 })
@@ -36,10 +35,10 @@ export class DashboardComponent {
     icon: ICONS.FEET,
   };
 
-  keys: GenerateTableKeys[] = [
-    // GenerateTableKeys.PROCESS_LOG
-    ...Object.values(GenerateTableKeys),
-  ];
+  keys: GenerateTableKeys[] = Dashboard_And_User_Page;
+  // [
+  //   // ...Object.values(GenerateTableKeys),
+  // ];
 
   constructor() {}
 

@@ -1,10 +1,13 @@
-import { ChangeDetectorRef, Component } from '@angular/core';
+import { ChangeDetectorRef, Component, ViewChild } from '@angular/core';
 import { isProcessLog } from '../../../_model/_interface/process-log';
 import { NamePage } from '../../../_components/name-page/name-page';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { InformationLeftRight } from '../../../_components/information/information-left-right';
 import { GenInput } from '../../../_components/input/input';
-import { GenerateTableKeys } from '../../../_components/generate-table/generate-table-key';
+import {
+  Dashboard_And_User_Page,
+  GenerateTableKeys,
+} from '../../../_components/generate-table/generate-table-key';
 import { ActivatedRoute, Router } from '@angular/router';
 import { AlertService } from '../../../_service/_alert/alert.service';
 import { JwtService } from '../../../_service/_http/jwt.service';
@@ -61,9 +64,13 @@ import { ChangeType } from '../../../_dialog/validate-change/change-type';
   styleUrl: './information.component.scss',
 })
 export class InformationComponent {
+  @ViewChild(GenerateTableComponent)
+  generateTableComponent!: GenerateTableComponent;
+
   key!: string;
   type: boolean = true;
   isHiddenInformation!: boolean;
+  isHiddenCards!: boolean;
   page!: NamePage;
   data!: ViewData;
   form!: FormGroup;
@@ -71,7 +78,6 @@ export class InformationComponent {
 
   information!: InformationLeftRight;
   config!: GenInput;
-
   keys!: GenerateTableKeys[];
 
   constructor(
@@ -427,7 +433,7 @@ export class InformationComponent {
                 {
                   name: 'Assembly Date',
                   icon: ICONS.MACHINE_LAST,
-                  answer: response.assembly_date,
+                  answer: response.assembly_date + '',
                 },
               ],
             };
@@ -478,6 +484,13 @@ export class InformationComponent {
                 },
               ],
             };
+            if (this._rolesLogicallyService.onIsAdminOrManager()) {
+              this.keys = Dashboard_And_User_Page;
+              this.generateTableComponent.onCardClick(
+                this.generateTableComponent.card
+              );
+              this.generateTableComponent.onInformation();
+            }
           },
           error: (error) => {
             console.error(error);
@@ -539,11 +552,14 @@ export class InformationComponent {
     switch (this.segment) {
       case Segment.PROCESS: {
         this.page = {
-          name: 'Process',
+          name: 'Process Log',
           content: [this.key],
           icon: ICONS.PROCESS,
         };
-        this.isHiddenInformation = true;
+        this.keys = [
+          GenerateTableKeys.PROCESS_LOG_BY_PROCESS_NAME_AND_USERNAME,
+        ];
+        this.isHiddenCards = true;
         break;
       }
       case Segment.MACHINE: {
@@ -556,6 +572,7 @@ export class InformationComponent {
           GenerateTableKeys.PART_PRODUCTION_BY_MACHINE,
           GenerateTableKeys.MACHINE_PAGE,
         ];
+        this.isHiddenCards = false;
         break;
       }
       case Segment.CAR: {

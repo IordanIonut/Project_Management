@@ -1,4 +1,5 @@
 import { Cars } from '../../_model/_interface/car';
+import { CarModel } from '../../_model/_interface/car-model';
 import { CarsParts } from '../../_model/_interface/cars-parts';
 import { Machines } from '../../_model/_interface/machine';
 import { PartProduction } from '../../_model/_interface/part-production';
@@ -13,4 +14,5 @@ export type GenerateType =
   | CarsParts
   | PartProduction
   | Machines
+  | CarModel
   | User;

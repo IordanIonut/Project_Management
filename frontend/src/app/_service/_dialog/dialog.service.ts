@@ -12,7 +12,7 @@ import { ValidateDeleteComponent } from '../../_dialog/validate-delete/validate-
 import { DeleteType } from '../../_dialog/validate-delete/delete-type';
 import { CHANGE_STATUS } from '../../_dialog/validate-change/change-status';
 import { ChangeType } from '../../_dialog/validate-change/change-type';
-import { GenerateType } from '../../_components/generate-table/generete-type';
+import { GenerateType } from '../../_components/generate-table/generate-type';
 
 @Injectable({
   providedIn: 'root',
